@@ -1,0 +1,42 @@
+body {
+  margin: 0; /* Remove default body margin */
+  padding: 0; /* Remove default body padding */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: black 1px solid;
+  text-align: center;
+  background-color: white;
+}
+
+.el-aside {
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+    url("../img/loginCover.png");
+  background-size: cover;
+  background-position: center;
+  border-left: 1px solid black;
+  max-height: inherit;
+  padding: 20px;
+  text-align: right;
+  color: white;
+  display: flex; /* Use flexbox for layout */
+  flex-direction: column; /* Arrange items in a column */
+  justify-content: center; /* Vertically center items */
+  font-size: larger;
+}
+
+.el-footer {
+  font-size: small;
+}
+
+.el-main {
+  max-width: 30vw;
+}

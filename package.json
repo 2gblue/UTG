@@ -1,0 +1,19 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@element-plus/nuxt": "^1.0.9",
+    "@nuxtjs/google-fonts": "^3.2.0",
+    "element-plus": "^2.7.6",
+    "nuxt": "^3.12.3",
+    "vue": "latest"
+  }
+}

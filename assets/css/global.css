@@ -1,0 +1,10 @@
+body {
+  font-family: "Jost", sans-serif;
+  background-color: #ededed;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+}
