@@ -1,0 +1,33 @@
+.middleTitle {
+  text-align: center;
+}
+
+.buttonContainer {
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+  width: 80%;
+}
+
+.newButton {
+  color: black;
+  border: solid 1px black;
+}
+
+.container {
+  margin-top: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  padding: 20px;
+  background-color: white;
+  border-radius: 5px;
+}
+
+.search-bar {
+  display: flex;
+  justify-content: space-between;
+}

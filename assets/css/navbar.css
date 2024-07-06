@@ -1,0 +1,32 @@
+.navbar-deco {
+  font-weight: lighter;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.el-menu-navbar {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.el-menu-item {
+  font-weight: bold;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.logout-button {
+  color: red;
+}
+
+a {
+  color: inherit;
+  cursor: auto;
+  text-decoration: none;
+}
