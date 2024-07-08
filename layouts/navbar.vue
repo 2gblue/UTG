@@ -1,7 +1,6 @@
 <template>
   <div>
     <el-menu
-      :default-active="activeIndex"
       class="el-menu-navbar"
       mode="horizontal"
       background-color="white"
@@ -12,15 +11,15 @@
     >
       <p class="navbar-deco">UMPSA Timetable Generator</p>
       <el-menu-item index="1">
-        <NuxtLink to="/catalogue">Course Catalogue</NuxtLink>
+        <NuxtLink to="/courses/">Course Catalogue</NuxtLink>
       </el-menu-item>
       <p class="navbar-deco"><b>/</b></p>
       <el-menu-item index="2">
-        <NuxtLink to="/">Faculty List</NuxtLink>
+        <NuxtLink to="/faculties/">Faculty List</NuxtLink>
       </el-menu-item>
       <p class="navbar-deco"><b>/</b></p>
       <el-menu-item index="3">
-        <NuxtLink to="/">Announcements</NuxtLink>
+        <NuxtLink to="/announcements/">Announcements</NuxtLink>
       </el-menu-item>
       <p class="navbar-deco"><b>/</b></p>
       <el-menu-item index="4">
@@ -28,7 +27,7 @@
       </el-menu-item>
       <p class="navbar-deco"><b>/</b></p>
       <el-menu-item index="5">
-        <NuxtLink to="/">User</NuxtLink>
+        <NuxtLink to="/users/">User</NuxtLink>
       </el-menu-item>
       <el-menu-item class="logout-button" style="margin-left: auto">
         <NuxtLink to="/login">Logout</NuxtLink>

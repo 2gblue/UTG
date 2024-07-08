@@ -29,8 +29,11 @@
               &nbsp;
 
               <el-select v-model="register.faculty" placeholder="Faculty">
-                <el-option label="FK" value="fk" />
-                <el-option label="FTKMA" value="ftkma" />
+                <el-option label="Faculty of Computing" value="" />
+                <el-option
+                  label="Faculty of Chemical and Process Engineering Technology"
+                  value=""
+                />
               </el-select>
             </el-form>
             <br />
