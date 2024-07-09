@@ -38,7 +38,7 @@
       />
     </div>
   </div>
-  <el-dialog v-model="view" title="Title Here">
+  <el-dialog v-model="view" title="Title Here" align-center>
     <hr />
     <div>
       <p><b>Posted by:</b> Person</p>
@@ -50,7 +50,7 @@
       announcement. This is a message of the announcement.</span
     >
   </el-dialog>
-  <el-dialog v-model="add" title="New Announcement" center>
+  <el-dialog v-model="add" title="New Announcement" center >
     <el-form :model="announcement" label-width="auto">
       <hr />
       <div>
