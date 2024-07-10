@@ -32,7 +32,7 @@
     <div class="pageNavigation">
       <el-pagination
         :page-size="20"
-        :pager-count="6"
+        :pager-count="3"
         layout="prev, pager, next"
         :total="500"
       />
@@ -50,7 +50,7 @@
       announcement. This is a message of the announcement.</span
     >
   </el-dialog>
-  <el-dialog v-model="add" title="New Announcement" center >
+  <el-dialog v-model="add" title="New Announcement" center>
     <el-form :model="announcement" label-width="auto">
       <hr />
       <div>

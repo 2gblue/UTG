@@ -1,12 +1,21 @@
 <template>
-  <title>Course Catalogue</title>
-  <h1 class="middleTitle">Course Catalogue</h1>
-  <div class="buttonContainer">
-    <el-button type="success" class="newButton" round @click="add = true"
-      >New</el-button
-    >
+  <title>Generate Timetable</title>
+  <h1 class="middleTitle">Generate Timetable</h1>
+  <div class="container">
+    <h2 class="middleTitle">Chosen Courses</h2>
+    <el-divider></el-divider>
+    <el-table :data="courseData" stripe>
+      <el-table-column prop="courseCode" label="Course Code" width="200" />
+      <el-table-column prop="courseName" label="Course Name" />
+    </el-table>
+  </div>
+  <br />
+  <div class="middleTitle">
+    <el-button type="warning" size="large">Proceed</el-button>
   </div>
   <div class="container">
+    <h2 class="middleTitle">Courses List</h2>
+    <el-divider></el-divider>
     <div class="search-bar">
       <el-form :model="search" label-width="auto" style="width: 50%">
         <el-input v-model="search.courseName" placeholder="Course Code/Name" />
@@ -33,9 +42,7 @@
       <el-table-column prop="faculty" label="Faculty" />
       <el-table-column label="Actions">
         <template #default="scope">
-          <el-button text>
-            <i class="bx bx-info-circle"></i>
-          </el-button>
+          <el-checkbox v-model="checked1" label=" " size="large" />
         </template>
       </el-table-column>
     </el-table>
@@ -48,44 +55,6 @@
       />
     </div>
   </div>
-  <el-dialog v-model="add" title="New Course" center>
-    <el-form :model="course" label-width="auto">
-      <hr />
-      <div>
-        <el-form-item label="Course Code">
-          <el-input v-model="course.code" />
-        </el-form-item>
-        <el-form-item label="Course Name">
-          <el-input v-model="course.name" />
-        </el-form-item>
-        <el-form-item label="Exam">
-          <el-select v-model="course.exam">
-            <el-option label="Yes" value=" " />
-            <el-option label="No" value=" " />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Faculty">
-          <el-select v-model="course.faculty" placeholder="Select faculty">
-            <el-option label="Faculty of Computing" value=" " />
-            <el-option
-              label="Faculty of Chemical and Process Engineering Technology"
-              value=" "
-            />
-          </el-select>
-        </el-form-item>
-      </div>
-      <hr />
-      <div
-        class="dialog-footer"
-        style="display: flex; justify-content: flex-end"
-      >
-        <el-button @click="add = false" style="margin-right: 8px"
-          >Cancel</el-button
-        >
-        <el-button type="primary">Submit</el-button>
-      </div>
-    </el-form>
-  </el-dialog>
 </template>
 
 <style scoped>
@@ -120,14 +89,6 @@ const courseData = [
     faculty: "FACULTY OF COMPUTING",
   },
 ];
-
-const add = ref(false);
-const course = reactive({
-  code: "",
-  name: "",
-  exam: "",
-  faculty: "",
-});
 
 definePageMeta({
   layout: "navbar",

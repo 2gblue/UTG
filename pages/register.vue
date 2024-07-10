@@ -60,8 +60,4 @@ const register = reactive({
   email: "",
   faculty: "",
 });
-
-definePageMeta({
-  layout: false,
-});
 </script>

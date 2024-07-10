@@ -43,8 +43,4 @@ const login = ref({
   username: "",
   password: "",
 });
-
-definePageMeta({
-  layout: false,
-});
 </script>

@@ -193,7 +193,7 @@
             <el-option
               v-for="item in group.options"
               :key="item.value"
-              :label="item.label"
+              :label="`${group.label} ${item.label}`"
               :value="item.value"
             />
           </el-option-group>
@@ -209,7 +209,7 @@
             <el-option
               v-for="item in group.options"
               :key="item.value"
-              :label="item.label"
+              :label="`${group.label} ${item.label}`"
               :value="item.value"
             />
           </el-option-group>

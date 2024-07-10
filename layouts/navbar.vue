@@ -23,7 +23,7 @@
       </el-menu-item>
       <p class="navbar-deco"><b>/</b></p>
       <el-menu-item index="4">
-        <NuxtLink to="/">Generate Timetable</NuxtLink>
+        <NuxtLink to="/generate/">Generate Timetable</NuxtLink>
       </el-menu-item>
       <p class="navbar-deco"><b>/</b></p>
       <el-menu-item index="5">
