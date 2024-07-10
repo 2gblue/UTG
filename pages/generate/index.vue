@@ -41,14 +41,14 @@
       <el-table-column prop="exam" label="Exam" />
       <el-table-column prop="faculty" label="Faculty" />
       <el-table-column label="Actions">
-        <template #default="scope">
-          <el-checkbox v-model="checked1" label=" " size="large" />
+        <template #default="{ row }">
+          <el-checkbox v-model="row.checked" size="large" />
         </template>
       </el-table-column>
     </el-table>
     <div class="pageNavigation">
       <el-pagination
-        :page-size="20"
+        :page-size="15"
         :pager-count="5"
         layout="prev, pager, next"
         :total="500"
@@ -89,6 +89,8 @@ const courseData = [
     faculty: "FACULTY OF COMPUTING",
   },
 ];
+
+const selectedCourses = ref([]);
 
 definePageMeta({
   layout: "navbar",

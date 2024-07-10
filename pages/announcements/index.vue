@@ -31,7 +31,7 @@
     </el-table>
     <div class="pageNavigation">
       <el-pagination
-        :page-size="20"
+        :page-size="15"
         :pager-count="3"
         layout="prev, pager, next"
         :total="500"

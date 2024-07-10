@@ -46,7 +46,7 @@
     <div class="pageNavigation">
       <el-pagination
         :page-size="20"
-        :pager-count="6"
+        :pager-count="5"
         layout="prev, pager, next"
         :total="500"
       />
