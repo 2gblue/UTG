@@ -45,8 +45,8 @@
     </el-table>
     <div class="pageNavigation">
       <el-pagination
-        :page-size="20"
-        :pager-count="5"
+        :page-size="21"
+        :pager-count="3"
         layout="prev, pager, next"
         :total="500"
       />
