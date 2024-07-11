@@ -66,6 +66,9 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="Credit Hour">
+        <el-input v-model="courseData.credit" :disabled="!isEditing" />
+      </el-form-item>
     </el-form>
   </div>
 
@@ -256,6 +259,7 @@ const courseData = ref({
   courseName: "Object Oriented Programming",
   exam: "Y",
   faculty: "Faculty of Computing",
+  credit: "3",
 });
 
 const addSectionForm = reactive({

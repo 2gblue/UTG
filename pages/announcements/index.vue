@@ -32,9 +32,9 @@
     <div class="pageNavigation">
       <el-pagination
         :page-size="15"
-        :pager-count="3"
+        :pager-count="5"
         layout="prev, pager, next"
-        :total="500"
+        :total="50"
       />
     </div>
   </div>

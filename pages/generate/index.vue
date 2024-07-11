@@ -39,6 +39,7 @@
       <el-table-column prop="courseCode" label="Course Code" />
       <el-table-column prop="courseName" label="Course Name" width="400" />
       <el-table-column prop="exam" label="Exam" />
+      <el-table-column prop="credit" label="Credit Hour" />
       <el-table-column prop="faculty" label="Faculty" />
       <el-table-column label="Actions">
         <template #default="{ row }">
@@ -48,10 +49,10 @@
     </el-table>
     <div class="pageNavigation">
       <el-pagination
-        :page-size="18"
-        :pager-count="5"
+        :page-size="21"
+        :pager-count="3"
         layout="prev, pager, next"
-        :total="500"
+        :total="100"
       />
     </div>
   </div>
@@ -74,18 +75,21 @@ const courseData = [
     courseCode: "BCS2143",
     courseName: "Object Oriented Programming",
     exam: "Y",
+    credit: "3",
     faculty: "FACULTY OF COMPUTING",
   },
   {
     courseCode: "BCS2233",
     courseName: "Software Requirement Workshop",
     exam: "N",
+    credit: "3",
     faculty: "FACULTY OF COMPUTING",
   },
   {
     courseCode: "BCS2313",
     courseName: "Artificial Intelligence Techniques",
     exam: "Y",
+    credit: "3",
     faculty: "FACULTY OF COMPUTING",
   },
 ];
