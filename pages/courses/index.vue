@@ -93,7 +93,7 @@
 @import url("../../node_modules/boxicons/css/boxicons.min.css");
 </style>
 
-<script setup lang="ts">
+<script setup>
 const search = ref({
   courseName: "",
   exam: "",

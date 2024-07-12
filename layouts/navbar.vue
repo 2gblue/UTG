@@ -30,7 +30,7 @@
         <NuxtLink to="/users/">User</NuxtLink>
       </el-menu-item>
       <el-menu-item class="logout-button" style="margin-left: auto">
-        <NuxtLink to="/login">Logout</NuxtLink>
+        <NuxtLink @click="logout">Logout</NuxtLink>
       </el-menu-item>
     </el-menu>
   </div>
@@ -41,9 +41,20 @@
 @import url("../assets/css/navbar.css");
 </style>
 
-<script setup lang="ts">
-const activeIndex = ref("1");
-const handleSelect = (index: string, indexPath: string[]) => {
-  console.log("Selected index:", index);
+<script setup>
+const client = useSupabaseClient();
+
+const logout = async () => {
+  try {
+    const { error } = await client.auth.signOut();
+    if (error) {
+      throw error;
+    } else {
+      await refreshNuxtData();
+      await navigateTo("/login");
+    }
+  } catch (error) {
+    showError(error.message);
+  }
 };
 </script>

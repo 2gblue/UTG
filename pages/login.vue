@@ -9,18 +9,29 @@
           >
           <el-main>
             <el-divider />
-            <el-form :model="login" label-width="auto" style="max-width: 600px">
-              <el-input v-model="login.username" placeholder="Username" />
+            <el-form
+              @submit.prevent="submit"
+              label-width="auto"
+              style="max-width: 600px"
+            >
+              <el-input v-model="email" placeholder="Email" />
               &nbsp;
               <!-- Blank space between form fields -->
               <el-input
-                v-model="login.password"
+                v-model="password"
                 placeholder="Password"
                 type="password"
               />
+              <el-button
+                type="primary"
+                round
+                native-type="submit"
+                style="margin-top: 20px"
+                >Login</el-button
+              >
             </el-form>
             <br />
-            <el-button type="primary" round @click="">Login</el-button>
+
             <el-divider> &nbsp; </el-divider>
           </el-main>
           <el-footer
@@ -38,9 +49,24 @@
 @import url("../assets/css/login.css");
 </style>
 
-<script setup lang="ts">
-const login = ref({
-  username: "",
-  password: "",
-});
+<script setup>
+const client = useSupabaseClient();
+const email = ref("");
+const password = ref("");
+
+async function submit() {
+  try {
+    const { error } = await client.auth.signInWithPassword({
+      email: email.value,
+      password: password.value,
+    });
+    if (error) {
+      throw error;
+    } else {
+      await navigateTo("/confirm");
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+}
 </script>

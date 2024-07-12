@@ -36,8 +36,10 @@
                 />
               </el-select>
             </el-form>
+            <el-button type="primary" round @click="" style="margin-top: 20px"
+              >Sign Up</el-button
+            >
             <br />
-            <el-button type="primary" round @click="">Sign Up</el-button>
             <el-divider> &nbsp; </el-divider>
           </el-main>
           <el-footer><NuxtLink to="/login">Back to Login</NuxtLink></el-footer>
@@ -52,7 +54,7 @@
 @import url("../assets/css/login.css");
 </style>
 
-<script setup lang="ts">
+<script setup>
 const register = reactive({
   username: "",
   password: "",

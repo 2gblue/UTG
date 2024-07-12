@@ -18,8 +18,8 @@ importers:
         specifier: ^3.2.0
         version: 3.2.0(magicast@0.3.4)(rollup@4.18.0)
       '@nuxtjs/supabase':
-        specifier: ^1.3.2
-        version: 1.3.2(magicast@0.3.4)(rollup@4.18.0)
+        specifier: ^1.3.4
+        version: 1.3.4(magicast@0.3.4)(rollup@4.18.0)
       boxicons:
         specifier: ^2.1.4
         version: 2.1.4
@@ -782,8 +782,8 @@ packages:
   '@nuxtjs/google-fonts@3.2.0':
     resolution: {integrity: sha512-cGAjDJoeQ2jm6VJCo4AtSmKO6KjsbO9RSLj8q261fD0lMVNMZCxkCxBkg8L0/2Vfgp+5QBHWVXL71p1tiybJFw==}
 
-  '@nuxtjs/supabase@1.3.2':
-    resolution: {integrity: sha512-/Ns7Fi5Ha8LxE/9lA4NqjuRGMIkpS8J7CoAUBtgmhWizO88IgH+oOb7sfRRU8mFVC8eJNZ8sN3FBAFCtA8jC8g==}
+  '@nuxtjs/supabase@1.3.4':
+    resolution: {integrity: sha512-DNWpheKPYXiWGYEFQGSES5yimMArG+LxIZ9o+88H2lOpad7B75qUWcGZt3TpPkrnc0WlJ0TSf5rWqfbh0ezfow==}
 
   '@opentelemetry/api-logs@0.52.1':
     resolution: {integrity: sha512-qnSqB2DQ9TPP96dl8cDubDvrUyWc0/sK81xHTK8eSUspzDM3bsewX903qclQFvVhgStjRWdC5bLb3kQqMkfV5A==}
@@ -4413,7 +4413,7 @@ snapshots:
       - rollup
       - supports-color
 
-  '@nuxtjs/supabase@1.3.2(magicast@0.3.4)(rollup@4.18.0)':
+  '@nuxtjs/supabase@1.3.4(magicast@0.3.4)(rollup@4.18.0)':
     dependencies:
       '@nuxt/kit': 3.12.3(magicast@0.3.4)(rollup@4.18.0)
       '@supabase/ssr': 0.4.0(@supabase/supabase-js@2.44.3)
