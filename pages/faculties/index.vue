@@ -1,37 +1,48 @@
 <template>
-  <title>Faculty List</title>
-  <h1 class="middleTitle">Faculty List</h1>
-  <div class="buttonContainer">
-    <el-button type="success" class="newButton" round @click="add = true"
-      >New</el-button
-    >
-  </div>
-  <div class="container">
-    <el-table :data="facultyData" stripe>
-      <el-table-column prop="facultyID" label="Faculty ID" width="200" />
-      <el-table-column prop="facultyName" label="Faculty" />
-    </el-table>
-  </div>
-  <el-dialog v-model="add" title="New Faculty" center width="500">
-    <el-form :model="faculty" label-width="auto">
-      <hr />
-      <div>
-        <el-form-item label="Faculty Name">
-          <el-input v-model="faculty.facultyName" />
-        </el-form-item>
-      </div>
-      <hr />
-      <div
-        class="dialog-footer"
-        style="display: flex; justify-content: flex-end"
+  <div>
+    <title>Faculty List</title>
+    <h1 class="middleTitle">Faculty List</h1>
+    <div class="buttonContainer">
+      <el-button
+        type="success"
+        class="newButton"
+        round
+        @click="addDialogVisible = true"
+        >New</el-button
       >
-        <el-button @click="add = false" style="margin-right: 8px"
-          >Cancel</el-button
+    </div>
+    <div class="container">
+      <el-table :data="facultyData" stripe>
+        <el-table-column prop="id" label="Faculty ID" width="200" />
+        <el-table-column prop="name" label="Faculty" />
+      </el-table>
+    </div>
+    <el-dialog
+      v-model="addDialogVisible"
+      title="New Faculty"
+      center
+      width="500"
+    >
+      <el-form :model="faculty" label-width="auto">
+        <hr />
+        <div>
+          <el-form-item label="Faculty Name">
+            <el-input v-model="faculty.name" />
+          </el-form-item>
+        </div>
+        <hr />
+        <div
+          class="dialog-footer"
+          style="display: flex; justify-content: flex-end"
         >
-        <el-button type="primary">Submit</el-button>
-      </div>
-    </el-form>
-  </el-dialog>
+          <el-button @click="addDialogVisible = false" style="margin-right: 8px"
+            >Cancel</el-button
+          >
+          <el-button type="primary" @click="submitFaculty">Submit</el-button>
+        </div>
+      </el-form>
+    </el-dialog>
+  </div>
 </template>
 
 <style scoped>
@@ -40,38 +51,39 @@
 </style>
 
 <script setup>
-const facultyData = [
-  {
-    facultyID: "1",
-    facultyName: "Faculty of Computing",
-  },
-  {
-    facultyID: "2",
-    facultyName: "Faculty of Chemical and Process Engineering Technology",
-  },
-  {
-    facultyID: "3",
-    facultyName: "Faculty of Electrical and Electronics Engineering Technology",
-  },
-  {
-    facultyID: "4",
-    facultyName:
-      "Faculty of Manufacturing and Mechatronic Engineering Technology",
-  },
-  {
-    facultyID: "5",
-    facultyName: "Centre for Modern Languages",
-  },
-  {
-    facultyID: "6",
-    facultyName: "Centre for Human Sciences",
-  },
-];
-
-const add = ref(false);
+const client = useSupabaseClient();
+const addDialogVisible = ref(false);
+const facultyData = ref([]);
 const faculty = reactive({
-  facultyName: "",
+  name: "",
 });
+
+async function fetchFaculties() {
+  try {
+    const { data, error } = await client.from("faculty").select("*");
+    if (error) {
+      throw error;
+    }
+    facultyData.value = data;
+  } catch (error) {
+    console.error("Error fetching faculties:", error.message);
+  }
+}
+
+async function submitFaculty() {
+  try {
+    const { data, error } = await client.from("faculty").insert([faculty]);
+    if (error) {
+      throw error;
+    }
+    addDialogVisible.value = false;
+    await fetchFaculties();
+  } catch (error) {
+    console.error("Error adding new faculty:", error.message);
+  }
+}
+
+onMounted(fetchFaculties);
 
 definePageMeta({
   layout: "navbar",
