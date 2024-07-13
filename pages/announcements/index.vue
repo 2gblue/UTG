@@ -98,9 +98,7 @@ const search = ref({
 });
 const currentPage = ref(1);
 const pageSize = ref(5); // Customize as needed
-const totalPages = computed(() =>
-  Math.ceil(announcementsData.value.length / pageSize.value)
-);
+const totalPages = ref(1);
 
 const pagedAnnouncements = computed(() => {
   const startIndex = (currentPage.value - 1) * pageSize.value;
@@ -172,14 +170,15 @@ async function fetchUserProfile() {
     console.error("Error fetching user profile:", error.message);
   }
 }
+
 async function fetchAnnouncements() {
   try {
     const { data, error, count } = await client
       .from("announcement")
-      .select("*")
+      .select("*", { count: "exact" })
       .range(
         (currentPage.value - 1) * pageSize.value,
-        currentPage.value * pageSize.value
+        currentPage.value * pageSize.value - 1
       )
       .order("created_at", { ascending: true });
 
@@ -191,7 +190,9 @@ async function fetchAnnouncements() {
       ...item,
       created_at: new Date(item.created_at).toLocaleString(),
     }));
-    totalAnnouncements.value = count;
+
+    // Update totalPages based on the total count of announcements
+    totalPages.value = Math.ceil(count / pageSize.value);
   } catch (error) {
     console.error("Error fetching announcements:", error.message);
   }
