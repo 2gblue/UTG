@@ -42,7 +42,7 @@
     <div class="pageNavigation">
       <el-pagination
         :page-size="21"
-        :pager-count="3"
+        :pager-count="5"
         layout="prev, pager, next"
         :total="100"
       />

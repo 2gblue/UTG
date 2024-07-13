@@ -4,6 +4,7 @@
     <h1 class="middleTitle">Faculty List</h1>
     <div class="buttonContainer">
       <el-button
+        v-if="accountRole != 1"
         type="success"
         class="newButton"
         round
@@ -52,11 +53,39 @@
 
 <script setup>
 const client = useSupabaseClient();
-const addDialogVisible = ref(false);
-const facultyData = ref([]);
+const accountRole = ref(null);
+const addDialogVisible = ref(false); //Add dialog
+const facultyData = ref([]); //Retrieved data
 const faculty = reactive({
   name: "",
-});
+}); //Add form data array
+
+async function fetchUserProfile() {
+  try {
+    const {
+      data: { user },
+      error,
+    } = await client.auth.getUser();
+    if (error) {
+      throw error;
+    }
+    if (user) {
+      console.log("User ID:", user.id);
+      const { data, error } = await client
+        .from("profile")
+        .select("accountRole")
+        .eq("id", user.id)
+        .single();
+      if (error) {
+        throw error;
+      }
+      console.log("Fetched user profile:", data);
+      accountRole.value = data.accountRole;
+    }
+  } catch (error) {
+    console.error("Error fetching user profile:", error.message);
+  }
+}
 
 async function fetchFaculties() {
   try {
@@ -83,7 +112,10 @@ async function submitFaculty() {
   }
 }
 
-onMounted(fetchFaculties);
+onMounted(() => {
+  fetchFaculties();
+  fetchUserProfile();
+});
 
 definePageMeta({
   layout: "navbar",

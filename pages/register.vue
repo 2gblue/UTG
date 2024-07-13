@@ -79,21 +79,16 @@ async function submit() {
     const { data, error } = await client.auth.signUp({
       email: email.value,
       password: password.value,
+      options: {
+        data: {
+          name: name.value,
+          faculty_id: faculty.value,
+        },
+      },
     });
     if (error) {
       throw error;
     } else {
-      const { error: profileError } = await client.from("profile").insert([
-        {
-          user_id: user.id,
-          name: name.value,
-          faculty_id: faculty.value,
-          accountrole: 1,
-        },
-      ]);
-      if (profileError) {
-        throw profileError;
-      }
       await navigateTo("/confirm");
     }
   } catch (error) {
