@@ -83,6 +83,7 @@ const client = useSupabaseClient();
 const accountRole = ref(null);
 const addDialogVisible = ref(false); //Add dialog
 const viewVisible = ref(false); //View dialog
+const allAnnouncements = ref([]); // Store all announcements
 const announcementsData = ref([]); //Retrieved data
 const viewDetails = reactive({
   postedBy: "",
@@ -98,24 +99,24 @@ const search = ref({
 });
 const currentPage = ref(1);
 const pageSize = ref(5); // Customize as needed
-const totalPages = ref(1);
+const totalPages = computed(() =>
+  Math.ceil(allAnnouncements.value.length / pageSize.value)
+);
 
 const pagedAnnouncements = computed(() => {
   const startIndex = (currentPage.value - 1) * pageSize.value;
-  return announcementsData.value.slice(startIndex, startIndex + pageSize.value);
+  return allAnnouncements.value.slice(startIndex, startIndex + pageSize.value);
 });
 
 function nextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
-    fetchAnnouncements();
   }
 }
 
 function prevPage() {
   if (currentPage.value > 1) {
     currentPage.value--;
-    fetchAnnouncements();
   }
 }
 
@@ -173,26 +174,19 @@ async function fetchUserProfile() {
 
 async function fetchAnnouncements() {
   try {
-    const { data, error, count } = await client
+    const { data, error } = await client
       .from("announcement")
-      .select("*", { count: "exact" })
-      .range(
-        (currentPage.value - 1) * pageSize.value,
-        currentPage.value * pageSize.value - 1
-      )
+      .select("*")
       .order("created_at", { ascending: true });
 
     if (error) {
       throw error;
     }
 
-    announcementsData.value = data.map((item) => ({
+    allAnnouncements.value = data.map((item) => ({
       ...item,
       created_at: new Date(item.created_at).toLocaleString(),
     }));
-
-    // Update totalPages based on the total count of announcements
-    totalPages.value = Math.ceil(count / pageSize.value);
   } catch (error) {
     console.error("Error fetching announcements:", error.message);
   }
