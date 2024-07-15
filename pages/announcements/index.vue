@@ -14,12 +14,17 @@
   <div class="container">
     <div class="search-bar">
       <el-form :model="search" label-width="auto" style="width: 100%">
-        <el-input v-model="search.announcement" placeholder="Title" />
+        <el-input
+          v-model="search.announcement"
+          placeholder="Search Announcements"
+        />
       </el-form>
-      <button><i class="bx bx-search-alt-2 bx-fw"></i></button>
+      <button @click="searchAnnouncements">
+        <i class="bx bx-search-alt-2 bx-fw"></i>
+      </button>
     </div>
     <el-divider></el-divider>
-    <el-table :data="pagedAnnouncements" stripe>
+    <el-table :data="announcementsData" stripe>
       <el-table-column prop="title" label="Announcements" width="600" />
       <el-table-column prop="created_at" label="Date" />
       <el-table-column label="Actions">
@@ -81,42 +86,67 @@
 <script setup>
 const client = useSupabaseClient();
 const accountRole = ref(null);
-const addDialogVisible = ref(false); //Add dialog
-const viewVisible = ref(false); //View dialog
-const allAnnouncements = ref([]); // Store all announcements
-const announcementsData = ref([]); //Retrieved data
+const addDialogVisible = ref(false);
+const viewVisible = ref(false);
+const announcementsData = ref([]);
 const viewDetails = reactive({
   postedBy: "",
   date: "",
   content: "",
-}); //View detail data array
+});
 const announcement = reactive({
   title: "",
   content: "",
-}); //Add form data array
+});
 const search = ref({
   announcement: "",
 });
 const currentPage = ref(1);
-const pageSize = ref(5); // Customize as needed
-const totalPages = computed(() =>
-  Math.ceil(allAnnouncements.value.length / pageSize.value)
-);
+const pageSize = ref(8);
+const totalItems = ref(0);
+const totalPages = computed(() => Math.ceil(totalItems.value / pageSize.value));
 
-const pagedAnnouncements = computed(() => {
-  const startIndex = (currentPage.value - 1) * pageSize.value;
-  return allAnnouncements.value.slice(startIndex, startIndex + pageSize.value);
-});
+async function fetchAnnouncements(page, searchQuery = "") {
+  try {
+    const from = (page - 1) * pageSize.value;
+    const to = page * pageSize.value - 1;
+
+    const { data, error, count } = await client
+      .from("announcement")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .ilike("title", `%${searchQuery}%`)
+      .range(from, to);
+
+    if (error) {
+      throw error;
+    }
+
+    announcementsData.value = data.map((item) => ({
+      ...item,
+      created_at: new Date(item.created_at).toLocaleString(),
+    }));
+    totalItems.value = count;
+  } catch (error) {
+    console.error("Error fetching announcements:", error.message);
+  }
+}
+
+function searchAnnouncements() {
+  fetchAnnouncements(currentPage.value, search.value.announcement);
+}
 
 function nextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
+    fetchAnnouncements(currentPage.value, search.value.announcement);
   }
 }
 
 function prevPage() {
   if (currentPage.value > 1) {
     currentPage.value--;
+    fetchAnnouncements(currentPage.value, search.value.announcement);
   }
 }
 
@@ -155,7 +185,6 @@ async function fetchUserProfile() {
       throw error;
     }
     if (user) {
-      console.log("User ID:", user.id);
       const { data, error } = await client
         .from("profile")
         .select("accountRole")
@@ -164,31 +193,10 @@ async function fetchUserProfile() {
       if (error) {
         throw error;
       }
-      console.log("Fetched user profile:", data);
       accountRole.value = data.accountRole;
     }
   } catch (error) {
     console.error("Error fetching user profile:", error.message);
-  }
-}
-
-async function fetchAnnouncements() {
-  try {
-    const { data, error } = await client
-      .from("announcement")
-      .select("*")
-      .order("created_at", { ascending: true });
-
-    if (error) {
-      throw error;
-    }
-
-    allAnnouncements.value = data.map((item) => ({
-      ...item,
-      created_at: new Date(item.created_at).toLocaleString(),
-    }));
-  } catch (error) {
-    console.error("Error fetching announcements:", error.message);
   }
 }
 
@@ -210,14 +218,14 @@ async function submitAnnouncement() {
     }
 
     addDialogVisible.value = false;
-    await fetchAnnouncements();
+    await fetchAnnouncements(currentPage.value); // Refetch announcements to include the new one
   } catch (error) {
     console.error("Error adding new announcement:", error.message);
   }
 }
 
 onMounted(() => {
-  fetchAnnouncements();
+  fetchAnnouncements(currentPage.value);
   fetchUserProfile();
 });
 
