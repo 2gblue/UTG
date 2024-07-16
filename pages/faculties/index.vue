@@ -89,7 +89,10 @@ async function fetchUserProfile() {
 
 async function fetchFaculties() {
   try {
-    const { data, error } = await client.from("faculty").select("*");
+    const { data, error } = await client
+      .from("faculty")
+      .select("*")
+      .order("id", { ascending: true });
     if (error) {
       throw error;
     }

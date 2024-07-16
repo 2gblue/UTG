@@ -17,12 +17,12 @@
         <el-form :model="search" label-width="auto" style="width: 50%">
           <el-input v-model="search.userName" placeholder="Name" />
         </el-form>
-        <button><i class="bx bx-search-alt-2 bx-fw"></i></button>
         <el-select
           v-model="search.userRole"
           placeholder="Role"
           style="width: 15%"
         >
+          <el-option label="All" value="*" />
           <el-option label="Staff" value="staff" />
           <el-option label="User" value="user" />
         </el-select>
@@ -151,7 +151,7 @@ async function fetchUsers(page) {
 
     let query = client
       .from("profile")
-      .select("id,name, accountRole, faculty:faculty_id(name)", {
+      .select("id, name, accountRole, faculty:faculty_id(name)", {
         count: "exact",
       })
       .range(from, to);
