@@ -68,7 +68,7 @@
       </el-form>
     </div>
   </div>
-  <div v-else class="center-dialog"><p>Redirecting...</p></div>
+  <div v-else class="center-dialog"><p>Loading...</p></div>
 </template>
 
 <style scoped>
@@ -88,11 +88,10 @@
 const client = useSupabaseClient();
 const faculties = ref([]);
 const userData = ref(null);
-const isEditing = ref(false);
 const accessAccountRole = ref(null);
 const route = useRoute();
 const userId = route.params.id;
-
+const isEditing = ref(false);
 const toggleEdit = () => {
   isEditing.value = !isEditing.value;
 };

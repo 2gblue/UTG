@@ -115,6 +115,7 @@
 <script setup>
 const client = useSupabaseClient();
 const accountRole = ref(null);
+const coursesData = ref([]);
 const faculties = ref([]);
 const search = reactive({
   courseCode: "",
@@ -130,7 +131,6 @@ const addNew = reactive({
   faculty_id: "",
   credit: "",
 });
-const coursesData = ref([]);
 const currentPage = ref(1);
 const pageSize = ref(20);
 const totalItems = ref(0);
@@ -146,6 +146,20 @@ async function addCourse() {
     await fetchCourses(currentPage);
   } catch (error) {
     console.error("Error adding new courses:", error.message);
+  }
+}
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+    fetchCourses(currentPage.value);
+  }
+}
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    fetchCourses(currentPage.value);
   }
 }
 
@@ -190,7 +204,6 @@ async function fetchCourses(page) {
   try {
     const from = (page - 1) * pageSize.value;
     const to = page * pageSize.value - 1;
-
     let query = client
       .from("course")
       .select(
@@ -204,21 +217,17 @@ async function fetchCourses(page) {
     if (search.courseCode) {
       query = query.ilike("courseCode", `%${search.courseCode}%`);
     }
-
     if (search.courseName) {
       query = query.ilike("courseName", `%${search.courseName}%`);
     }
-
     if (search.exam === "Yes") {
       query = query.eq("exam", "Yes");
     } else if (search.exam === "No") {
       query = query.eq("exam", "No");
     }
-
     if (search.faculty) {
       query = query.eq("faculty_id", search.faculty);
     }
-
     const { data, error, count } = await query;
 
     if (error) {
@@ -233,24 +242,9 @@ async function fetchCourses(page) {
       faculty: course.faculty.name,
       credit: course.credit,
     }));
-
     totalItems.value = count;
   } catch (error) {
     console.error("Error fetching courses:", error.message);
-  }
-}
-
-function nextPage() {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-    fetchCourses(currentPage.value);
-  }
-}
-
-function prevPage() {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-    fetchCourses(currentPage.value);
   }
 }
 

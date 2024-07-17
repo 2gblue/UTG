@@ -159,19 +159,15 @@ async function fetchUsers(page) {
     if (search.userName) {
       query = query.ilike("name", `%${search.userName}%`);
     }
-
     if (search.userRole === "user") {
       query = query.eq("accountRole", "1");
     } else if (search.userRole === "staff") {
       query = query.in("accountRole", ["2", "3"]);
     }
-
     if (search.faculty) {
       query = query.eq("faculty_id", search.faculty);
     }
-
     const { data, error, count } = await query;
-
     if (error) {
       throw error;
     }
@@ -220,7 +216,7 @@ async function registerUser() {
     } else {
       console.log("User registered successfully:", data);
       addDialogVisible.value = false;
-      // Optionally, you might want to fetch users to update the list
+      location.reload();
     }
   } catch (error) {
     console.error("Error signing up:", error.message);

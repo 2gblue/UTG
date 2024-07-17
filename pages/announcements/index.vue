@@ -86,14 +86,14 @@
 <script setup>
 const client = useSupabaseClient();
 const accountRole = ref(null);
-const addDialogVisible = ref(false);
-const viewVisible = ref(false);
 const announcementsData = ref([]);
+const viewVisible = ref(false);
 const viewDetails = reactive({
   postedBy: "",
   date: "",
   content: "",
 });
+const addDialogVisible = ref(false);
 const announcement = reactive({
   title: "",
   content: "",
@@ -106,48 +106,8 @@ const pageSize = ref(8);
 const totalItems = ref(0);
 const totalPages = computed(() => Math.ceil(totalItems.value / pageSize.value));
 
-async function fetchAnnouncements(page, searchQuery = "") {
-  try {
-    const from = (page - 1) * pageSize.value;
-    const to = page * pageSize.value - 1;
-
-    const { data, error, count } = await client
-      .from("announcement")
-      .select("*", { count: "exact" })
-      .order("created_at", { ascending: false })
-      .ilike("title", `%${searchQuery}%`)
-      .range(from, to);
-
-    if (error) {
-      throw error;
-    }
-
-    announcementsData.value = data.map((item) => ({
-      ...item,
-      created_at: new Date(item.created_at).toLocaleString(),
-    }));
-    totalItems.value = count;
-  } catch (error) {
-    console.error("Error fetching announcements:", error.message);
-  }
-}
-
 function searchAnnouncements() {
   fetchAnnouncements(currentPage.value, search.value.announcement);
-}
-
-function nextPage() {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-    fetchAnnouncements(currentPage.value, search.value.announcement);
-  }
-}
-
-function prevPage() {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-    fetchAnnouncements(currentPage.value, search.value.announcement);
-  }
 }
 
 async function openViewDialog(row) {
@@ -175,6 +135,68 @@ async function openViewDialog(row) {
   }
 }
 
+async function submitAnnouncement() {
+  try {
+    const {
+      data: { user },
+    } = await client.auth.getUser();
+    if (!user) {
+      throw new Error("User not found");
+    }
+    announcement.user_id = user.id;
+
+    const { data, error } = await client
+      .from("announcement")
+      .insert([announcement]);
+    if (error) {
+      throw error;
+    }
+
+    addDialogVisible.value = false;
+    await fetchAnnouncements(currentPage.value); // Refetch announcements to include the new one
+  } catch (error) {
+    console.error("Error adding new announcement:", error.message);
+  }
+}
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+    fetchAnnouncements(currentPage.value, search.value.announcement);
+  }
+}
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    fetchAnnouncements(currentPage.value, search.value.announcement);
+  }
+}
+
+async function fetchAnnouncements(page, searchQuery = "") {
+  try {
+    const from = (page - 1) * pageSize.value;
+    const to = page * pageSize.value - 1;
+    const { data, error, count } = await client
+      .from("announcement")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .ilike("title", `%${searchQuery}%`)
+      .range(from, to);
+
+    if (error) {
+      throw error;
+    }
+    announcementsData.value = data.map((item) => ({
+      ...item,
+      created_at: new Date(item.created_at).toLocaleString(),
+    }));
+    totalItems.value = count;
+  } catch (error) {
+    console.error("Error fetching announcements:", error.message);
+  }
+}
+
 async function fetchUserProfile() {
   try {
     const {
@@ -197,30 +219,6 @@ async function fetchUserProfile() {
     }
   } catch (error) {
     console.error("Error fetching user profile:", error.message);
-  }
-}
-
-async function submitAnnouncement() {
-  try {
-    const {
-      data: { user },
-    } = await client.auth.getUser();
-    if (!user) {
-      throw new Error("User not found");
-    }
-    announcement.user_id = user.id;
-
-    const { data, error } = await client
-      .from("announcement")
-      .insert([announcement]);
-    if (error) {
-      throw error;
-    }
-
-    addDialogVisible.value = false;
-    await fetchAnnouncements(currentPage.value); // Refetch announcements to include the new one
-  } catch (error) {
-    console.error("Error adding new announcement:", error.message);
   }
 }
 

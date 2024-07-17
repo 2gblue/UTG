@@ -54,11 +54,24 @@
 <script setup>
 const client = useSupabaseClient();
 const accountRole = ref(null);
-const addDialogVisible = ref(false); //Add dialog
-const facultyData = ref([]); //Retrieved data
+const addDialogVisible = ref(false);
+const facultyData = ref([]);
 const faculty = reactive({
   name: "",
-}); //Add form data array
+});
+
+async function submitFaculty() {
+  try {
+    const { data, error } = await client.from("faculty").insert([faculty]);
+    if (error) {
+      throw error;
+    }
+    addDialogVisible.value = false;
+    await fetchFaculties();
+  } catch (error) {
+    console.error("Error adding new faculty:", error.message);
+  }
+}
 
 async function fetchUserProfile() {
   try {
@@ -99,19 +112,6 @@ async function fetchFaculties() {
     facultyData.value = data;
   } catch (error) {
     console.error("Error fetching faculties:", error.message);
-  }
-}
-
-async function submitFaculty() {
-  try {
-    const { data, error } = await client.from("faculty").insert([faculty]);
-    if (error) {
-      throw error;
-    }
-    addDialogVisible.value = false;
-    await fetchFaculties();
-  } catch (error) {
-    console.error("Error adding new faculty:", error.message);
   }
 }
 
