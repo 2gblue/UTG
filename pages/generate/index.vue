@@ -9,6 +9,24 @@
       <el-table-column prop="courseName" label="Course Name" />
       <el-table-column prop="exam" label="Exam" />
       <el-table-column prop="credit" label="Credit Hour" />
+      <el-table-column label="Actions">
+        <template #default="scope">
+          <el-button @click="removeCourse(scope.row)">
+            <i class="bx bx-minus-circle"></i>
+          </el-button>
+          <el-button
+            @click="moveUp(scope.$index)"
+            :disabled="scope.$index === 0"
+            ><i class="bx bx-chevron-up"></i
+          ></el-button>
+          <el-button
+            @click="moveDown(scope.$index)"
+            :disabled="scope.$index === selectedCourses.length - 1"
+          >
+            <i class="bx bx-chevron-down"></i
+          ></el-button>
+        </template>
+      </el-table-column>
     </el-table>
   </div>
   <br />
@@ -16,7 +34,7 @@
     <el-button type="warning" size="large">Proceed</el-button>
   </div>
   <div class="container">
-    <h2 class="middleTitle">Courses List</h2>
+    <h2 class="middleTitle">Course List</h2>
     <el-divider></el-divider>
     <div>
       <div class="search-bar">
@@ -45,19 +63,19 @@
         </el-select>
       </div>
       <el-divider></el-divider>
-      <el-table
-        :data="coursesData"
-        stripe
-        @selection-change="handleSelectionChange"
-        row-key="id"
-        :reserve-selection="true"
-      >
+      <el-table :data="coursesData" stripe>
         <el-table-column prop="courseCode" label="Course Code" />
         <el-table-column prop="courseName" label="Course Name" />
         <el-table-column prop="exam" label="Exam" width="100" />
         <el-table-column prop="faculty" label="Faculty" />
         <el-table-column prop="credit" label="Credit Hour" width="100" />
-        <el-table-column type="selection" width="55" />
+        <el-table-column label="Actions" width="100">
+          <template #default="scope">
+            <el-button @click="addCourse(scope.row)">
+              <i class="bx bx-plus"></i>
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
       <div class="pageNavigation">
         <button @click="prevPage" :disabled="currentPage === 1">
@@ -88,19 +106,39 @@ const search = reactive({
   exam: "",
   faculty: "",
 });
-const chosenCourses = reactive([]);
 const selectedCourses = ref([]);
 const currentPage = ref(1);
 const pageSize = ref(15);
 const totalItems = ref(0);
 const totalPages = computed(() => Math.ceil(totalItems.value / pageSize.value));
-const rowKey = (row) => row.id;
-const courseTable = ref(null);
 
-function handleSelectionChange(val) {
-  selectedCourses.value = val;
+function addCourse(course) {
+  if (!selectedCourses.value.find((c) => c.id === course.id)) {
+    selectedCourses.value.push(course);
+  }
 }
 
+function removeCourse(course) {
+  selectedCourses.value = selectedCourses.value.filter(
+    (c) => c.id !== course.id
+  );
+}
+
+function moveUp(index) {
+  if (index > 0) {
+    const temp = selectedCourses.value[index - 1];
+    selectedCourses.value[index - 1] = selectedCourses.value[index];
+    selectedCourses.value[index] = temp;
+  }
+}
+
+function moveDown(index) {
+  if (index < selectedCourses.value.length - 1) {
+    const temp = selectedCourses.value[index + 1];
+    selectedCourses.value[index + 1] = selectedCourses.value[index];
+    selectedCourses.value[index] = temp;
+  }
+}
 function nextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
@@ -169,18 +207,6 @@ async function fetchCourses(page) {
       credit: course.credit,
     }));
     totalItems.value = count;
-
-    // Maintain the selection state
-    setTimeout(() => {
-      selectedCourses.value.forEach((selectedCourse) => {
-        const course = coursesData.value.find(
-          (course) => course.id === selectedCourse.id
-        );
-        if (course) {
-          courseTable.value.toggleRowSelection(course, true);
-        }
-      });
-    }, 0);
   } catch (error) {
     console.error("Error fetching courses:", error.message);
   }
