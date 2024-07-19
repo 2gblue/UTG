@@ -11,9 +11,31 @@
       >
         <template #default="scope">
           <div
-            id="getCellId(scope.$index + 1, index + 1)"
-            style="height: 50px"
-          ></div>
+            :id="`cell-${scope.$index + 1}-${index + 1}`"
+            style="height: auto"
+          >
+            <!-- Render content based on timetable array -->
+            <div v-if="timetable[scope.$index * times.length + index + 1]">
+              <p>
+                <strong>{{
+                  timetable[scope.$index * times.length + index + 1].courseCode
+                }}</strong>
+              </p>
+              <p>
+                {{
+                  timetable[scope.$index * times.length + index + 1].courseName
+                }}
+              </p>
+              <p>
+                {{
+                  timetable[scope.$index * times.length + index + 1].sectionName
+                }}
+              </p>
+            </div>
+            <div v-else>
+              <!-- Default content for empty cells -->
+            </div>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -22,27 +44,39 @@
   <div class="middleTitle">
     <el-button type="primary" size="large">Export</el-button>
     <el-button type="warning" size="large">Generate</el-button>
+    <el-button type="info" size="large" @click="testSelectedCourses"
+      >Test</el-button
+    ><el-button type="info" size="large" @click="testGen"
+      >Test Filling</el-button
+    >
   </div>
   <div class="container">
     <h2 class="middleTitle">Chosen Courses</h2>
     <el-divider></el-divider>
-    <el-table :data="courseData" stripe>
-      <el-table-column prop="courseCode" label="Course Code" width="200" />
-      <el-table-column prop="courseName" label="Course Name" />
-      <el-table-column label="Sections">
-        <template #default="scope">
-          <el-checkbox-group v-model="selectedSections[scope.$index]">
-            <el-checkbox
-              v-for="section in scope.row.sections"
-              :label="section"
-              :key="section"
-            >
-              {{ section }}
-            </el-checkbox>
-          </el-checkbox-group>
-        </template>
-      </el-table-column>
-    </el-table>
+    <div v-if="selectedCourses.length">
+      <el-table :data="selectedCourses" stripe>
+        <el-table-column prop="courseCode" label="Course Code" width="200" />
+        <el-table-column prop="courseName" label="Course Name" />
+        <el-table-column label="Sections">
+          <template #default="scope">
+            <div>
+              <el-checkbox
+                v-for="section in scope.row.sections"
+                :key="section"
+                :label="section"
+                :value="section"
+                v-model="selectedSections[scope.row.id]"
+              >
+                {{ section }}
+              </el-checkbox>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+    <div v-else>
+      <p>No courses selected.</p>
+    </div>
   </div>
 </template>
 
@@ -51,40 +85,149 @@
 @import url("../../node_modules/boxicons/css/boxicons.min.css");
 </style>
 
-<script setup lang="ts">
-const courseData = ref([
-  {
-    courseCode: "BCS2143",
-    courseName: "Object Oriented Programming",
-    exam: "Y",
-    faculty: "FACULTY OF COMPUTING",
-    sections: ["01A", "01B", "02A", "03A"],
-  },
-  {
-    courseCode: "BCS2233",
-    courseName: "Software Requirement Workshop",
-    exam: "N",
-    faculty: "FACULTY OF COMPUTING",
-    sections: ["01A", "01B", "02A", "02B", "03A"],
-  },
-  {
-    courseCode: "BCS2313",
-    courseName: "Artificial Intelligence Techniques",
-    exam: "Y",
-    faculty: "FACULTY OF COMPUTING",
-    sections: ["01A", "01B"],
-  },
-]);
-
-const selectedSections = ref<Array<Array<string>>>(
-  courseData.value.map(() => [])
-);
+<script setup>
+const client = useSupabaseClient();
+const route = useRoute();
+const selectedCourses = ref([]);
+const selectedSections = ref({});
 
 const times = ["0800-1000", "1000-1200", "1200-1400", "1400-1600", "1600-1800"];
 const days = ["MON", "TUE", "WED", "THUR", "FRI"];
 const tableData = ref(days.map((day) => ({ time: day })));
 
-const getCellId = (row: number, col: number) => row * 5 + col;
+function getCellId(rowIndex, columnIndex) {
+  return rowIndex * 5 + columnIndex;
+}
+
+async function retrieveJSON() {
+  const queryCourses = route.query.selectedCourses;
+  if (queryCourses) {
+    try {
+      const courseIds = queryCourses.split(",").map((id) => parseInt(id));
+      const { data: courses, error: courseError } = await client
+        .from("course")
+        .select(
+          "id, courseCode, courseName, exam, faculty:faculty_id(name), credit"
+        )
+        .in("id", courseIds);
+
+      if (courseError) {
+        console.error("Error fetching courses:", courseError.message);
+      } else {
+        for (const course of courses) {
+          const { data: sections, error: sectionError } = await client
+            .from("session")
+            .select("sectionName")
+            .eq("course_id", course.id)
+            .order("sectionName", { ascending: true });
+          if (sectionError) {
+            console.error("Error fetching sections:", sectionError.message);
+          } else {
+            course.sections = sections.map((section) => section.sectionName);
+            selectedSections.value[course.id] = [];
+          }
+        }
+        selectedCourses.value = courses;
+      }
+    } catch (e) {
+      console.error("Error processing selectedCourses:", e);
+    }
+  }
+}
+
+async function testSelectedCourses() {
+  const resultArray = [];
+  for (const course of selectedCourses.value) {
+    const checkedSections = selectedSections.value[course.id] || [];
+    const { data: sessions, error } = await client
+      .from("session")
+      .select("id, sectionName")
+      .eq("course_id", course.id);
+
+    if (error) {
+      console.error(
+        `Error fetching sessions for course ${course.id}:`,
+        error.message
+      );
+      continue;
+    }
+    const row = [course.id];
+    const sessionIdMap = new Map(
+      sessions.map((session) => [session.sectionName, session.id])
+    );
+    checkedSections.forEach((sectionName) => {
+      const sectionId = sessionIdMap.get(sectionName);
+      if (sectionId !== undefined) {
+        row.push(sectionId);
+      }
+    });
+    resultArray.push(row);
+  }
+  console.log(resultArray);
+}
+
+const timetable = ref(Array(26).fill(null));
+
+async function testGen() {
+  // Clear the timetable to ensure no old data remains
+  const newTimetable = Array(26).fill(null);
+
+  for (const course of selectedCourses.value) {
+    const checkedSections = selectedSections.value[course.id] || [];
+    const { data: sessions, error } = await client
+      .from("session")
+      .select("id, sectionName, lectureSession, labSession")
+      .eq("course_id", course.id);
+
+    if (error) {
+      console.error(
+        `Error fetching sessions for course ${course.id}:`,
+        error.message
+      );
+      continue;
+    }
+    // Map sectionName to session details
+    const sessionMap = new Map(sessions.map((s) => [s.sectionName, s]));
+    checkedSections.forEach((sectionName) => {
+      const session = sessionMap.get(sectionName);
+      if (session) {
+        // Assuming lectureSession and labSession are indices [1-25]
+        const lectureCellId = session.lectureSession;
+        const labCellId = session.labSession;
+
+        // Populate timetable with course details and session ID
+        if (lectureCellId >= 1 && lectureCellId <= 25) {
+          newTimetable[lectureCellId] = {
+            courseId: course.id,
+            courseCode: course.courseCode, // Correctly access course details
+            courseName: course.courseName, // Correctly access course details
+            sessionId: session.id,
+            sectionName: sectionName,
+            sessionType: "Lecture",
+          };
+        }
+
+        if (labCellId >= 1 && labCellId <= 25) {
+          newTimetable[labCellId] = {
+            courseId: course.id,
+            courseCode: course.courseCode, // Correctly access course details
+            courseName: course.courseName, // Correctly access course details
+            sessionId: session.id,
+            sectionName: sectionName,
+            sessionType: "Lab",
+          };
+        }
+      }
+    });
+  }
+  // Update the timetable ref
+  timetable.value = newTimetable;
+  console.log(timetable.value);
+}
+
+onMounted(() => {
+  retrieveJSON();
+});
 
 definePageMeta({
   layout: "navbar",

@@ -31,7 +31,9 @@
   </div>
   <br />
   <div class="middleTitle">
-    <el-button type="warning" size="large">Proceed</el-button>
+    <el-button type="warning" size="large" @click="goToGenerate"
+      >Proceed</el-button
+    >
   </div>
   <div class="container">
     <h2 class="middleTitle">Course List</h2>
@@ -111,6 +113,15 @@ const currentPage = ref(1);
 const pageSize = ref(15);
 const totalItems = ref(0);
 const totalPages = computed(() => Math.ceil(totalItems.value / pageSize.value));
+const router = useRouter();
+
+function goToGenerate() {
+  const selectedCourseIds = selectedCourses.value.map((course) => course.id);
+  router.push({
+    path: "/generate/schedule",
+    query: { selectedCourses: selectedCourseIds.join(",") },
+  });
+}
 
 function addCourse(course) {
   if (!selectedCourses.value.find((c) => c.id === course.id)) {
