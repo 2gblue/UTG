@@ -43,7 +43,9 @@
   <br />
   <div class="middleTitle">
     <el-button type="primary" size="large">Export</el-button>
-    <el-button type="warning" size="large">Generate</el-button>
+    <el-button type="warning" size="large" @click="generateTimetable"
+      >Generate</el-button
+    >
     <el-button type="info" size="large" @click="testSelectedCourses"
       >Test</el-button
     ><el-button type="info" size="large" @click="testGen"
@@ -65,7 +67,8 @@
                 :key="section"
                 :label="section"
                 :value="section"
-                v-model="selectedSections[scope.row.id]"
+                :model-value="selectedSections[scope.row.id].includes(section)"
+                @change="handleCheckboxChange(scope.row.id, section)"
               >
                 {{ section }}
               </el-checkbox>
@@ -135,6 +138,126 @@ async function retrieveJSON() {
   }
 }
 
+function handleCheckboxChange(courseId, section) {
+  if (!selectedSections.value[courseId]) {
+    selectedSections.value[courseId] = [];
+  }
+  const index = selectedSections.value[courseId].indexOf(section);
+  if (index > -1) {
+    selectedSections.value[courseId].splice(index, 1);
+  } else {
+    selectedSections.value[courseId].push(section);
+  }
+}
+
+const timetable = ref(Array(26).fill(null));
+
+async function generateTimetable() {
+  // Prepare the result array
+  const resultArray = [];
+  for (const course of selectedCourses.value) {
+    const checkedSections = selectedSections.value[course.id] || [];
+    const { data: sessions, error } = await client
+      .from("session")
+      .select("id, sectionName, lectureSession, labSession")
+      .eq("course_id", course.id)
+      .order("sectionName", { ascending: true }); // Order by sectionName ascending
+
+    if (error) {
+      console.error(
+        `Error fetching sessions for course ${course.id}:`,
+        error.message
+      );
+      continue;
+    }
+
+    if (checkedSections.length > 0) {
+      const row = [course.id, course.courseCode, course.courseName]; // Include course details
+      const sessionIdMap = new Map(
+        sessions.map((session) => [session.sectionName, session])
+      );
+      // Sort the checkedSections by sectionName
+      const sortedCheckedSections = checkedSections.sort();
+      sortedCheckedSections.forEach((sectionName) => {
+        const session = sessionIdMap.get(sectionName);
+        if (session) {
+          row.push(session);
+        }
+      });
+      resultArray.push(row);
+    } else {
+      console.warn(`No sections checked for course ${course.courseCode}`);
+    }
+  }
+
+  // Clear the timetable to ensure no old data remains
+  const newTimetable = Array(26).fill(null);
+
+  // Function to reset the state of the timetable
+  function resetTimetable() {
+    newTimetable.fill(null);
+  }
+
+  // Generate the timetable
+  for (const courseSessions of resultArray) {
+    let sessionAdded = false;
+    for (let i = 3; i < courseSessions.length; i++) {
+      const session = courseSessions[i];
+      const lectureCellId = session.lectureSession;
+      const labCellId = session.labSession;
+
+      const canAddLecture =
+        lectureCellId == null ||
+        (lectureCellId >= 1 &&
+          lectureCellId <= 25 &&
+          !newTimetable[lectureCellId]);
+      const canAddLab =
+        labCellId == null ||
+        (labCellId >= 1 && labCellId <= 25 && !newTimetable[labCellId]);
+
+      if (canAddLecture && canAddLab) {
+        if (
+          lectureCellId != null &&
+          lectureCellId >= 1 &&
+          lectureCellId <= 25
+        ) {
+          newTimetable[lectureCellId] = {
+            courseId: courseSessions[0],
+            courseCode: courseSessions[1],
+            courseName: courseSessions[2],
+            sessionId: session.id,
+            sectionName: session.sectionName,
+            sessionType: "Lecture",
+          };
+        }
+
+        if (labCellId != null && labCellId >= 1 && labCellId <= 25) {
+          newTimetable[labCellId] = {
+            courseId: courseSessions[0],
+            courseCode: courseSessions[1],
+            courseName: courseSessions[2],
+            sessionId: session.id,
+            sectionName: session.sectionName,
+            sessionType: "Lab",
+          };
+        }
+
+        sessionAdded = true;
+        break;
+      }
+    }
+
+    if (!sessionAdded) {
+      console.warn(`No available slots for course ${courseSessions[0]}`);
+      resetTimetable(); // Reset timetable if no slots are available
+      break; // Exit the loop to avoid partial timetable generation
+    }
+  }
+
+  timetable.value = newTimetable;
+  console.log(timetable.value);
+}
+
 async function testSelectedCourses() {
   const resultArray = [];
   for (const course of selectedCourses.value) {
@@ -165,8 +288,6 @@ async function testSelectedCourses() {
   }
   console.log(resultArray);
 }
-
-const timetable = ref(Array(26).fill(null));
 
 async function testGen() {
   // Clear the timetable to ensure no old data remains

@@ -3,6 +3,11 @@
   <h1 class="middleTitle">Generate Timetable</h1>
   <div class="container">
     <h2 class="middleTitle">Chosen Courses</h2>
+    <p class="middleTitle">
+      <sup
+        >Courses are prioritised based on descending order - Top to Bottom</sup
+      >
+    </p>
     <el-divider></el-divider>
     <el-table :data="selectedCourses" stripe>
       <el-table-column prop="courseCode" label="Course Code" width="200" />

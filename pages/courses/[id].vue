@@ -1,6 +1,6 @@
 <template>
   <div v-if="courseData">
-    <title>View Course</title>
+    <title>{{ courseData.courseCode }} {{ courseData.courseName }}</title>
     <h1 class="middleTitle">Courses / {{ courseData.courseCode }}</h1>
     <div class="buttonContainer" v-if="accessAccountRole != 1">
       <el-button

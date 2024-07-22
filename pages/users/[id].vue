@@ -1,6 +1,6 @@
 <template>
   <div v-if="userData">
-    <title>View Profile</title>
+    <title>{{ userData.name }}</title>
     <h1 class="middleTitle">User List / {{ userData.name }}</h1>
     <div class="buttonContainer">
       <el-button
