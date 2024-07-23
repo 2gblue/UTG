@@ -32,6 +32,13 @@
           <el-button text @click="openViewDialog(row)">
             <i class="bx bx-info-circle"></i>
           </el-button>
+          <el-button
+            text
+            @click="openDeleteDialog(row)"
+            v-if="accountRole != 1"
+          >
+            <i class="bx bx-trash"></i>
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -75,12 +82,36 @@
       </div>
     </el-form>
   </el-dialog>
+  <el-dialog
+    v-model="deleteDialogVisible"
+    width="500"
+    align-center
+    center
+    :title="'Delete Announcement'"
+  >
+    <el-form class="center-dialog">
+      <span>Are you sure you want to delete this <b>announcement</b>?</span>
+      <br />
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="deleteDialogVisible = false">Cancel</el-button>
+        <el-button type="danger" @click="deleteAnnouncement">Delete</el-button>
+      </span>
+    </el-form>
+  </el-dialog>
 </template>
 
 <style scoped>
 @import url("../../assets/css/browse.css");
 @import url("../../assets/css/pager.css");
 @import url("../../node_modules/boxicons/css/boxicons.min.css");
+
+.center-dialog {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
 </style>
 
 <script setup>
@@ -94,6 +125,8 @@ const viewDetails = reactive({
   content: "",
 });
 const addDialogVisible = ref(false);
+const deleteDialogVisible = ref(false);
+const deleteDialogData = ref(null);
 const announcement = reactive({
   title: "",
   content: "",
@@ -156,6 +189,30 @@ async function submitAnnouncement() {
     await fetchAnnouncements(currentPage.value); // Refetch announcements to include the new one
   } catch (error) {
     console.error("Error adding new announcement:", error.message);
+  }
+}
+
+const openDeleteDialog = (announcement) => {
+  deleteDialogData.value = announcement;
+  deleteDialogVisible.value = true;
+};
+
+async function deleteAnnouncement() {
+  try {
+    if (!deleteDialogData.value) {
+      throw new Error("No announcement selected for deletion.");
+    }
+
+    const { id } = deleteDialogData.value;
+    const { error } = await client.from("announcement").delete().eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+    deleteDialogVisible.value = false;
+    await fetchAnnouncements(currentPage.value);
+  } catch (error) {
+    console.error("Error deleting announcement:", error.message);
   }
 }
 
