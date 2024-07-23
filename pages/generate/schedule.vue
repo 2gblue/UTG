@@ -93,14 +93,10 @@ const client = useSupabaseClient();
 const route = useRoute();
 const selectedCourses = ref([]);
 const selectedSections = ref({});
-
+const timetable = ref(Array(26).fill(null));
 const times = ["0800-1000", "1000-1200", "1200-1400", "1400-1600", "1600-1800"];
 const days = ["MON", "TUE", "WED", "THUR", "FRI"];
 const tableData = ref(days.map((day) => ({ time: day })));
-
-function getCellId(rowIndex, columnIndex) {
-  return rowIndex * 5 + columnIndex;
-}
 
 async function retrieveJSON() {
   const queryCourses = route.query.selectedCourses;
@@ -150,18 +146,20 @@ function handleCheckboxChange(courseId, section) {
   }
 }
 
-const timetable = ref(Array(26).fill(null));
-
 async function generateTimetable() {
-  // Prepare the result array
-  const resultArray = [];
+  let resultArray = [];
+  const skippedCourses = [];
+  let validTimetableFound = false;
+  const newTimetable = Array(26).fill(null);
+
+  // Prepare result array
   for (const course of selectedCourses.value) {
     const checkedSections = selectedSections.value[course.id] || [];
     const { data: sessions, error } = await client
       .from("session")
       .select("id, sectionName, lectureSession, labSession")
       .eq("course_id", course.id)
-      .order("sectionName", { ascending: true }); // Order by sectionName ascending
+      .order("sectionName", { ascending: true }); // Order by sectionName asc
 
     if (error) {
       console.error(
@@ -176,7 +174,7 @@ async function generateTimetable() {
       const sessionIdMap = new Map(
         sessions.map((session) => [session.sectionName, session])
       );
-      // Sort the checkedSections by sectionName
+      // Sort by sectionName
       const sortedCheckedSections = checkedSections.sort();
       sortedCheckedSections.forEach((sectionName) => {
         const session = sessionIdMap.get(sectionName);
@@ -190,30 +188,37 @@ async function generateTimetable() {
     }
   }
 
-  // Clear the timetable to ensure no old data remains
-  const newTimetable = Array(26).fill(null);
-
-  // Function to reset the state of the timetable
   function resetTimetable() {
-    newTimetable.fill(null);
+    return Array(26).fill(null);
   }
 
-  // Generate the timetable
-  for (const courseSessions of resultArray) {
+  function isTimetableValid(timetable) {
+    return timetable.every(
+      (cell) => cell === null || (cell.sessionId && cell.courseCode)
+    );
+  }
+
+  function tryFitCourse(resultArray, index, timetable) {
+    if (index >= resultArray.length) {
+      return isTimetableValid(timetable);
+    }
+
+    const courseSessions = resultArray[index];
     let sessionAdded = false;
+    let allSectionsTried = true;
+
     for (let i = 3; i < courseSessions.length; i++) {
       const session = courseSessions[i];
       const lectureCellId = session.lectureSession;
       const labCellId = session.labSession;
-
       const canAddLecture =
         lectureCellId == null ||
         (lectureCellId >= 1 &&
           lectureCellId <= 25 &&
-          !newTimetable[lectureCellId]);
+          !timetable[lectureCellId]);
       const canAddLab =
         labCellId == null ||
-        (labCellId >= 1 && labCellId <= 25 && !newTimetable[labCellId]);
+        (labCellId >= 1 && labCellId <= 25 && !timetable[labCellId]);
 
       if (canAddLecture && canAddLab) {
         if (
@@ -221,7 +226,7 @@ async function generateTimetable() {
           lectureCellId >= 1 &&
           lectureCellId <= 25
         ) {
-          newTimetable[lectureCellId] = {
+          timetable[lectureCellId] = {
             courseId: courseSessions[0],
             courseCode: courseSessions[1],
             courseName: courseSessions[2],
@@ -230,9 +235,8 @@ async function generateTimetable() {
             sessionType: "Lecture",
           };
         }
-
         if (labCellId != null && labCellId >= 1 && labCellId <= 25) {
-          newTimetable[labCellId] = {
+          timetable[labCellId] = {
             courseId: courseSessions[0],
             courseCode: courseSessions[1],
             courseName: courseSessions[2],
@@ -241,20 +245,69 @@ async function generateTimetable() {
             sessionType: "Lab",
           };
         }
-
         sessionAdded = true;
-        break;
+        if (tryFitCourse(resultArray, index + 1, timetable)) {
+          return true;
+        }
+        // Reset if not valid
+        timetable[lectureCellId] = null;
+        timetable[labCellId] = null;
+      } else {
+        allSectionsTried = false;
       }
     }
 
-    if (!sessionAdded) {
-      console.warn(`No available slots for course ${courseSessions[0]}`);
-      resetTimetable(); // Reset timetable if no slots are available
-      break; // Exit the loop to avoid partial timetable generation
+    if (allSectionsTried && !sessionAdded) {
+      skippedCourses.push(courseSessions[0]);
+    }
+    return false;
+  }
+
+  // Fitting all courses
+  let finalTimetable = resetTimetable();
+
+  if (tryFitCourse(resultArray, 0, finalTimetable)) {
+    validTimetableFound = true;
+  } else {
+    console.warn(
+      "No valid timetable configuration found. Skipping some courses."
+    );
+    // If no valid timetable was found, try skipping courses
+    const initialResultArray = [...resultArray];
+    skippedCourses.length = 0; // Clear skippedCourses
+    resultArray = resultArray.filter(
+      (_, index) => !skippedCourses.includes(index)
+    );
+    finalTimetable = resetTimetable();
+    if (tryFitCourse(resultArray, 0, finalTimetable)) {
+      validTimetableFound = true;
+    } else {
+      resultArray = initialResultArray; // Restore original resultArray
     }
   }
 
-  timetable.value = newTimetable;
+  if (validTimetableFound) {
+    timetable.value = finalTimetable;
+
+    // Calculate total credit hours
+    const totalCreditHours = selectedCourses.value.reduce((total, course) => {
+      const courseSessions = resultArray.find((row) => row[0] === course.id);
+      if (courseSessions) {
+        return total + (course.credit || 0);
+      }
+      return total;
+    }, 0);
+    console.log(`Total Credit Hours: ${totalCreditHours}`);
+  } else {
+    console.warn("Failed to generate a valid timetable.");
+    timetable.value = finalTimetable;
+  }
+
+  // Log skipped courses
+  if (skippedCourses.length > 0) {
+    console.log("Skipped courses due to lack of fitting sections:");
+    skippedCourses.forEach((courseId) => console.log(`Course ID: ${courseId}`));
+  }
   console.log(timetable.value);
 }
 
@@ -292,7 +345,6 @@ async function testSelectedCourses() {
 async function testGen() {
   // Clear the timetable to ensure no old data remains
   const newTimetable = Array(26).fill(null);
-
   for (const course of selectedCourses.value) {
     const checkedSections = selectedSections.value[course.id] || [];
     const { data: sessions, error } = await client
@@ -315,7 +367,6 @@ async function testGen() {
         // Assuming lectureSession and labSession are indices [1-25]
         const lectureCellId = session.lectureSession;
         const labCellId = session.labSession;
-
         // Populate timetable with course details and session ID
         if (lectureCellId >= 1 && lectureCellId <= 25) {
           newTimetable[lectureCellId] = {
