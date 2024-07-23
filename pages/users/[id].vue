@@ -37,19 +37,6 @@
         <el-form-item label="Full Name">
           <el-input v-model="userData.name" :disabled="!isEditing" />
         </el-form-item>
-        <!-- <el-form-item label="Password">
-          <el-input
-            v-model="userData.password"
-            :type="passwordVisible ? 'text' : 'password'"
-            :disabled="!isEditing"
-            @mousedown="togglePasswordVisibility(true)"
-            @mouseup="togglePasswordVisibility(false)"
-            @mouseleave="togglePasswordVisibility(false)"
-          />
-        </el-form-item>
-        <el-form-item label="Email Address">
-          <el-input v-model="userData.email" :disabled="!isEditing" />
-        </el-form-item> -->
         <el-form-item label="Faculty">
           <el-select
             v-model="userData.faculty_id"
@@ -64,6 +51,9 @@
               :value="faculty.id"
             />
           </el-select>
+        </el-form-item>
+        <el-form-item label="Email" v-if="isUserMatching && accountData.email">
+          <el-input v-model="accountData.email" :disabled="!isEditing" />
         </el-form-item>
       </el-form>
     </div>
@@ -88,6 +78,10 @@
 const client = useSupabaseClient();
 const faculties = ref([]);
 const userData = ref(null);
+const accountData = ref({
+  email: "",
+  password: "",
+});
 const accessAccountRole = ref(null);
 const route = useRoute();
 const userId = route.params.id;
@@ -95,6 +89,7 @@ const isEditing = ref(false);
 const toggleEdit = () => {
   isEditing.value = !isEditing.value;
 };
+const isUserMatching = ref(false);
 
 const saveChanges = async () => {
   try {
@@ -169,10 +164,31 @@ async function fetchUserProfile() {
   }
 }
 
+async function fetchAccountData() {
+  try {
+    const {
+      data: { user },
+      error,
+    } = await client.auth.getUser();
+    if (error) {
+      throw error;
+    }
+    if (user) {
+      isUserMatching.value = user.id === userId;
+      accountData.value = {
+        email: user.email || "",
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching account data:", error.message);
+  }
+}
+
 onMounted(async () => {
   await fetchUserData();
   await fetchFaculties();
   await fetchUserProfile();
+  await fetchAccountData();
 });
 
 definePageMeta({

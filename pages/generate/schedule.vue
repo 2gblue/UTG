@@ -39,6 +39,7 @@
         </template>
       </el-table-column>
     </el-table>
+    <div id="timetable-info" style="margin: 15px"></div>
   </div>
   <br />
   <div class="middleTitle">
@@ -46,9 +47,7 @@
     <el-button type="warning" size="large" @click="generateTimetable"
       >Generate</el-button
     >
-    <el-button type="info" size="large" @click="testSelectedCourses"
-      >Test</el-button
-    ><el-button type="info" size="large" @click="testGen"
+    <el-button type="info" size="large" @click="testGen"
       >Test Filling</el-button
     >
   </div>
@@ -148,19 +147,18 @@ function handleCheckboxChange(courseId, section) {
 
 async function generateTimetable() {
   let resultArray = [];
-  const skippedCourses = [];
+  let skippedCourses = [];
   let validTimetableFound = false;
   const newTimetable = Array(26).fill(null);
+  let skippedCoursesList = "";
 
-  // Prepare result array
   for (const course of selectedCourses.value) {
     const checkedSections = selectedSections.value[course.id] || [];
     const { data: sessions, error } = await client
       .from("session")
       .select("id, sectionName, lectureSession, labSession")
       .eq("course_id", course.id)
-      .order("sectionName", { ascending: true }); // Order by sectionName asc
-
+      .order("sectionName", { ascending: true });
     if (error) {
       console.error(
         `Error fetching sessions for course ${course.id}:`,
@@ -170,11 +168,10 @@ async function generateTimetable() {
     }
 
     if (checkedSections.length > 0) {
-      const row = [course.id, course.courseCode, course.courseName]; // Include course details
+      const row = [course.id, course.courseCode, course.courseName];
       const sessionIdMap = new Map(
         sessions.map((session) => [session.sectionName, session])
       );
-      // Sort by sectionName
       const sortedCheckedSections = checkedSections.sort();
       sortedCheckedSections.forEach((sectionName) => {
         const session = sessionIdMap.get(sectionName);
@@ -182,6 +179,7 @@ async function generateTimetable() {
           row.push(session);
         }
       });
+
       resultArray.push(row);
     } else {
       console.warn(`No sections checked for course ${course.courseCode}`);
@@ -205,12 +203,12 @@ async function generateTimetable() {
 
     const courseSessions = resultArray[index];
     let sessionAdded = false;
-    let allSectionsTried = true;
 
     for (let i = 3; i < courseSessions.length; i++) {
       const session = courseSessions[i];
       const lectureCellId = session.lectureSession;
       const labCellId = session.labSession;
+
       const canAddLecture =
         lectureCellId == null ||
         (lectureCellId >= 1 &&
@@ -246,20 +244,16 @@ async function generateTimetable() {
           };
         }
         sessionAdded = true;
+
         if (tryFitCourse(resultArray, index + 1, timetable)) {
           return true;
         }
         // Reset if not valid
         timetable[lectureCellId] = null;
         timetable[labCellId] = null;
-      } else {
-        allSectionsTried = false;
       }
     }
-
-    if (allSectionsTried && !sessionAdded) {
-      skippedCourses.push(courseSessions[0]);
-    }
+    skippedCourses.push(courseSessions[0]);
     return false;
   }
 
@@ -270,11 +264,11 @@ async function generateTimetable() {
     validTimetableFound = true;
   } else {
     console.warn(
-      "No valid timetable configuration found. Skipping some courses."
+      "No valid timetable configuration found. Attempting to skip problematic courses."
     );
-    // If no valid timetable was found, try skipping courses
     const initialResultArray = [...resultArray];
-    skippedCourses.length = 0; // Clear skippedCourses
+    const initialSkippedCourses = [...skippedCourses];
+    skippedCourses.length = 0;
     resultArray = resultArray.filter(
       (_, index) => !skippedCourses.includes(index)
     );
@@ -282,14 +276,15 @@ async function generateTimetable() {
     if (tryFitCourse(resultArray, 0, finalTimetable)) {
       validTimetableFound = true;
     } else {
-      resultArray = initialResultArray; // Restore original resultArray
+      resultArray = initialResultArray;
+      skippedCourses = initialSkippedCourses;
     }
   }
 
+  const timetableInfoDiv = document.getElementById("timetable-info");
+
   if (validTimetableFound) {
     timetable.value = finalTimetable;
-
-    // Calculate total credit hours
     const totalCreditHours = selectedCourses.value.reduce((total, course) => {
       const courseSessions = resultArray.find((row) => row[0] === course.id);
       if (courseSessions) {
@@ -297,49 +292,21 @@ async function generateTimetable() {
       }
       return total;
     }, 0);
-    console.log(`Total Credit Hours: ${totalCreditHours}`);
+    timetableInfoDiv.innerHTML = `Total Credit Hours: ${totalCreditHours}`;
   } else {
-    console.warn("Failed to generate a valid timetable.");
     timetable.value = finalTimetable;
-  }
+    timetableInfoDiv.innerHTML =
+      "Failed to generate a valid timetable.<br /><br />Skipped Courses:";
 
-  // Log skipped courses
-  if (skippedCourses.length > 0) {
-    console.log("Skipped courses due to lack of fitting sections:");
-    skippedCourses.forEach((courseId) => console.log(`Course ID: ${courseId}`));
+    // Append skipped courses to the info div
+    if (skippedCourses.length > 0) {
+      skippedCoursesList = skippedCourses
+        .map((courseId) => `Course ID: ${courseId}`)
+        .join("<br />");
+      timetableInfoDiv.innerHTML += `<br />${skippedCoursesList}`;
+    }
   }
   console.log(timetable.value);
-}
-
-async function testSelectedCourses() {
-  const resultArray = [];
-  for (const course of selectedCourses.value) {
-    const checkedSections = selectedSections.value[course.id] || [];
-    const { data: sessions, error } = await client
-      .from("session")
-      .select("id, sectionName")
-      .eq("course_id", course.id);
-
-    if (error) {
-      console.error(
-        `Error fetching sessions for course ${course.id}:`,
-        error.message
-      );
-      continue;
-    }
-    const row = [course.id];
-    const sessionIdMap = new Map(
-      sessions.map((session) => [session.sectionName, session.id])
-    );
-    checkedSections.forEach((sectionName) => {
-      const sectionId = sessionIdMap.get(sectionName);
-      if (sectionId !== undefined) {
-        row.push(sectionId);
-      }
-    });
-    resultArray.push(row);
-  }
-  console.log(resultArray);
 }
 
 async function testGen() {
