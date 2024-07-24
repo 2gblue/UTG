@@ -2,7 +2,7 @@
   <div>
     <title>Faculty List</title>
     <h1 class="middleTitle">Faculty List</h1>
-    <div class="buttonContainer">
+    <div class="buttonContainer" v-if="accountRole">
       <el-button
         v-if="accountRole != 1"
         type="success"

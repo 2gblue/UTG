@@ -1,7 +1,7 @@
 <template>
   <title>Announcements</title>
   <h1 class="middleTitle">Announcements</h1>
-  <div class="buttonContainer">
+  <div class="buttonContainer" v-if="accountRole">
     <el-button
       v-if="accountRole != 1"
       type="success"
@@ -135,7 +135,7 @@ const search = ref({
   announcement: "",
 });
 const currentPage = ref(1);
-const pageSize = ref(8);
+const pageSize = ref(10);
 const totalItems = ref(0);
 const totalPages = computed(() => Math.ceil(totalItems.value / pageSize.value));
 

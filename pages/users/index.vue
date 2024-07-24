@@ -2,7 +2,7 @@
   <title>User List</title>
   <div>
     <h1 class="middleTitle">User List</h1>
-    <div class="buttonContainer">
+    <div class="buttonContainer" v-if="accountRole">
       <el-button
         v-if="accountRole != 1"
         type="success"

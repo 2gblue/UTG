@@ -1,7 +1,7 @@
 <template>
   <title>Course Catalogue</title>
   <h1 class="middleTitle">Course Catalogue</h1>
-  <div class="buttonContainer">
+  <div class="buttonContainer" v-if="accountRole">
     <el-button
       v-if="accountRole != 1"
       type="success"
