@@ -43,13 +43,15 @@
   </div>
   <br />
   <div class="middleTitle">
-    <el-button type="primary" size="large">Export</el-button>
+    <el-button type="primary" size="large" @click="exportToPDF"
+      >Export</el-button
+    >
     <el-button type="warning" size="large" @click="generateTimetable"
       >Generate</el-button
     >
-    <el-button type="info" size="large" @click="testGen"
+    <!-- <el-button type="info" size="large" @click="testGen"
       >Test Filling</el-button
-    >
+    > -->
   </div>
   <div class="container">
     <h2 class="middleTitle">Chosen Courses</h2>
@@ -96,6 +98,7 @@ const timetable = ref(Array(26).fill(null));
 const times = ["0800-1000", "1000-1200", "1200-1400", "1400-1600", "1600-1800"];
 const days = ["MON", "TUE", "WED", "THUR", "FRI"];
 const tableData = ref(days.map((day) => ({ time: day })));
+const router = useRouter();
 
 async function retrieveJSON() {
   const queryCourses = route.query.selectedCourses;
@@ -310,7 +313,7 @@ async function generateTimetable() {
 }
 
 async function testGen() {
-  // Clear the timetable to ensure no old data remains
+  //Testing raw inputs
   const newTimetable = Array(26).fill(null);
   for (const course of selectedCourses.value) {
     const checkedSections = selectedSections.value[course.id] || [];
@@ -326,20 +329,17 @@ async function testGen() {
       );
       continue;
     }
-    // Map sectionName to session details
     const sessionMap = new Map(sessions.map((s) => [s.sectionName, s]));
     checkedSections.forEach((sectionName) => {
       const session = sessionMap.get(sectionName);
       if (session) {
-        // Assuming lectureSession and labSession are indices [1-25]
         const lectureCellId = session.lectureSession;
         const labCellId = session.labSession;
-        // Populate timetable with course details and session ID
         if (lectureCellId >= 1 && lectureCellId <= 25) {
           newTimetable[lectureCellId] = {
             courseId: course.id,
-            courseCode: course.courseCode, // Correctly access course details
-            courseName: course.courseName, // Correctly access course details
+            courseCode: course.courseCode,
+            courseName: course.courseName,
             sessionId: session.id,
             sectionName: sectionName,
             sessionType: "Lecture",
@@ -349,8 +349,8 @@ async function testGen() {
         if (labCellId >= 1 && labCellId <= 25) {
           newTimetable[labCellId] = {
             courseId: course.id,
-            courseCode: course.courseCode, // Correctly access course details
-            courseName: course.courseName, // Correctly access course details
+            courseCode: course.courseCode,
+            courseName: course.courseName,
             sessionId: session.id,
             sectionName: sectionName,
             sessionType: "Lab",
@@ -359,9 +359,19 @@ async function testGen() {
       }
     });
   }
-  // Update the timetable ref
   timetable.value = newTimetable;
   console.log(timetable.value);
+}
+
+function exportToPDF() {
+  const timetableData = JSON.stringify(
+    timetable.value
+      .filter((entry) => entry !== null)
+      .map((entry) => entry.sessionId)
+  );
+  const url = new URL("/generate/print", window.location.origin);
+  url.searchParams.set("timetable", timetableData);
+  window.open(url.toString(), "_blank");
 }
 
 onMounted(() => {

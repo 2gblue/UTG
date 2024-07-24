@@ -1,0 +1,132 @@
+.print-container {
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.timetable-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.timetable-table th,
+.timetable-table td {
+  border: 1px solid #dcdcdc;
+  text-align: center;
+  padding: 8px;
+  vertical-align: middle;
+  background-color: #ffffff;
+  color: #808080;
+}
+
+.timetable-table th {
+  background-color: #ffffff;
+}
+
+@media print {
+  .print-container {
+    padding: 0;
+    margin: 0;
+  }
+
+  .timetable-table {
+    width: 100%;
+    table-layout: fixed;
+    page-break-inside: auto;
+  }
+
+  .timetable-table th,
+  .timetable-table td {
+    border: 1px solid #dcdcdc;
+    overflow: hidden;
+    word-break: normal;
+    text-align: left;
+    font-size: 10px;
+    background-color: #ffffff;
+    color: #808080;
+  }
+
+  .course-details {
+    margin-top: 20px;
+  }
+
+  .course-details li {
+    color: #808080;
+  }
+
+  @page {
+    size: auto;
+    margin: 10mm;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    -webkit-print-color-adjust: exact;
+  }
+
+  h1 {
+    font-size: 24px;
+    text-align: center;
+  }
+}
+
+.course-details {
+  margin-top: 20px;
+}
+
+.course-details ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.course-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid #dcdcdc;
+}
+
+.course-code,
+.course-name,
+.section-name,
+.credit {
+  flex: 1; /* Ensure items take up equal space */
+  text-align: left;
+}
+
+.course-code {
+  min-width: 120px; /* Adjust as needed */
+}
+
+.course-name {
+  min-width: 200px; /* Adjust as needed */
+}
+
+.section-name {
+  min-width: 120px; /* Adjust as needed */
+}
+
+.credit {
+  min-width: 80px; /* Adjust as needed */
+  text-align: right;
+}
+
+@media print {
+  .course-item {
+    padding: 2px 0;
+    font-size: 10px;
+  }
+
+  .course-code,
+  .course-name,
+  .section-name,
+  .credit {
+    min-width: auto; /* Ensure no fixed widths during printing */
+  }
+
+  .credit {
+    text-align: right;
+  }
+}
