@@ -1,7 +1,7 @@
 <template>
   <title>User List</title>
   <div>
-    <h1 class="middleTitle">User List</h1>
+    <h1 class="middleTitle">Users List</h1>
     <div class="buttonContainer" v-if="accountRole">
       <el-button
         v-if="accountRole != 1"
@@ -12,7 +12,7 @@
         >New</el-button
       >
     </div>
-    <div class="container">
+    <div class="container" v-if="accountRole">
       <div class="search-bar">
         <el-form :model="search" label-width="auto" style="width: 50%">
           <el-input v-model="search.userName" placeholder="Name" />
@@ -51,6 +51,9 @@
                 <i class="bx bx-info-circle"></i>
               </el-button>
             </NuxtLink>
+            <el-button text @click="openDeleteDialog(row)">
+              <i class="bx bx-trash"></i>
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -112,6 +115,22 @@
         </div>
       </el-form>
     </el-dialog>
+    <el-dialog
+      v-model="deleteDialogVisible"
+      width="500"
+      align-center
+      center
+      :title="'Delete User'"
+    >
+      <el-form class="center-dialog">
+        <span>Are you sure you want to delete this <b>user</b>?</span>
+        <br />
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="deleteDialogVisible = false">Cancel</el-button>
+          <el-button type="danger" @click="deleteUser">Delete</el-button>
+        </span>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
@@ -119,6 +138,14 @@
 @import url("../../assets/css/browse.css");
 @import url("../../node_modules/boxicons/css/boxicons.min.css");
 @import url("../../assets/css/pager.css");
+
+.center-dialog {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
 </style>
 
 <script setup>
@@ -139,6 +166,8 @@ const register = reactive({
   faculty: "",
 });
 const usersData = ref([]);
+const deleteDialogVisible = ref(false);
+const deleteDialogData = ref(null);
 const currentPage = ref(1);
 const pageSize = ref(10);
 const totalItems = ref(0);
@@ -259,6 +288,25 @@ async function fetchFaculties() {
     console.log("Faculties fetched:", faculties.value);
   }
 }
+
+const openDeleteDialog = (user) => {
+  deleteDialogData.value = user;
+  deleteDialogVisible.value = true;
+};
+
+const deleteUser = async () => {
+  try {
+    const { data, error } = await client
+      .from("profile")
+      .delete()
+      .eq("id", deleteDialogData.value.id);
+    if (error) throw error;
+    deleteDialogVisible.value = false;
+    location.reload();
+  } catch (error) {
+    console.error("Error deleting user:", error.message);
+  }
+};
 
 watchEffect(() => {
   fetchUsers(currentPage.value);

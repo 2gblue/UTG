@@ -52,8 +52,22 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="Role">
+          <el-input
+            :value="
+              userData.accountRole == 1
+                ? 'User'
+                : userData.accountRole == 2
+                ? 'Staff'
+                : userData.accountRole == 3
+                ? 'Admin'
+                : 'Unknown'
+            "
+            disabled
+          />
+        </el-form-item>
         <el-form-item label="Email" v-if="isUserMatching && accountData.email">
-          <el-input v-model="accountData.email" :disabled="!isEditing" />
+          <el-input v-model="accountData.email" disabled />
         </el-form-item>
       </el-form>
     </div>
@@ -80,7 +94,6 @@ const faculties = ref([]);
 const userData = ref(null);
 const accountData = ref({
   email: "",
-  password: "",
 });
 const accessAccountRole = ref(null);
 const route = useRoute();

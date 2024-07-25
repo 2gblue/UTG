@@ -155,6 +155,7 @@ function moveDown(index) {
     selectedCourses.value[index] = temp;
   }
 }
+
 function nextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;

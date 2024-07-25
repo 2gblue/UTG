@@ -98,7 +98,6 @@ const timetable = ref(Array(26).fill(null));
 const times = ["0800-1000", "1000-1200", "1200-1400", "1400-1600", "1600-1800"];
 const days = ["MON", "TUE", "WED", "THUR", "FRI"];
 const tableData = ref(days.map((day) => ({ time: day })));
-const router = useRouter();
 
 async function retrieveJSON() {
   const queryCourses = route.query.selectedCourses;

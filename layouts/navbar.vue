@@ -24,15 +24,13 @@
       <el-menu-item index="4">
         <NuxtLink to="/generate/">Generate Timetable</NuxtLink>
       </el-menu-item>
-      <div v-if="accountRole">
-        <p class="navbar-deco"><b>/</b></p>
-        <el-menu-item index="5" v-if="accountRole != 1">
-          <NuxtLink to="/users/">User List</NuxtLink>
-        </el-menu-item>
-      </div>
-      <p class="navbar-deco" v-if="accountRole != 1"><b>/</b></p>
-      <el-menu-item index="6">
+      <p class="navbar-deco"><b>/</b></p>
+      <el-menu-item index="5">
         <NuxtLink :to="`/users/${userID}`">Profile</NuxtLink>
+      </el-menu-item>
+      <p class="navbar-deco" v-if="accountRole != 1"><b>/</b></p>
+      <el-menu-item index="6" v-if="accountRole != 1">
+        <NuxtLink to="/users/">User List</NuxtLink>
       </el-menu-item>
       <el-menu-item class="logout-button" style="margin-left: auto">
         <NuxtLink @click="logout">Logout</NuxtLink>
