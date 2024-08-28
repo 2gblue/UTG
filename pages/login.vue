@@ -60,7 +60,7 @@ async function submit() {
       password: password.value,
     });
     if (error) {
-      throw error;
+      window.alert("Invalid login credentials.");
     } else {
       await navigateTo("/confirm");
     }

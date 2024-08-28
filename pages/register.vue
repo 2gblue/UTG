@@ -87,7 +87,9 @@ async function submit() {
       },
     });
     if (error) {
-      throw error;
+      window.alert(
+        "Error occurred during signing up. \nPassword must be at least six characters long or email has already been registered."
+      );
     } else {
       await navigateTo("/confirm");
     }

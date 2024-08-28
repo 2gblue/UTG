@@ -10,6 +10,7 @@ watch(
   async () => {
     if (user.value) {
       await navigateTo("/courses");
+      window.location.reload();
     } else {
       await navigateTo("/login");
     }
