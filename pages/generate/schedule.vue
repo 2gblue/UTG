@@ -58,8 +58,20 @@
     <el-divider></el-divider>
     <div v-if="selectedCourses.length">
       <el-table :data="selectedCourses" stripe>
-        <el-table-column prop="courseCode" label="Course Code" width="200" />
-        <el-table-column prop="courseName" label="Course Name" />
+        <el-table-column prop="id" label="Course ID" width="100" />
+        <el-table-column prop="courseCode" label="Course Code" width="150" />
+        <el-table-column prop="courseName" label="Course Name">
+          <template #default="scope">
+            <a
+              :href="`/courses/${scope.row.id}`"
+              target="_blank"
+              rel="noopener noreferrer"
+              style="color: #008fa6; text-decoration: none"
+            >
+              {{ scope.row.courseName }}
+            </a>
+          </template>
+        </el-table-column>
         <el-table-column label="Sections">
           <template #default="scope">
             <div>
@@ -259,7 +271,6 @@ async function generateTimetable() {
     return false;
   }
 
-  // Fitting all courses
   let finalTimetable = resetTimetable();
 
   if (tryFitCourse(resultArray, 0, finalTimetable)) {
