@@ -8,7 +8,8 @@
       active-text-color="#8034c2"
       :ellipsis="false"
     >
-      <p class="navbar-deco">UMPSA Timetable Generator</p>
+      <p><img src="../assets/img/logo.png" class="logo" /></p>
+      <p class="navbar-deco">Timetable Generator</p>
       <el-menu-item index="1">
         <NuxtLink to="/courses/">Course Catalogue</NuxtLink>
       </el-menu-item>

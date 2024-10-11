@@ -31,9 +31,6 @@
         label-width="auto"
         style="max-width: auto; margin: 30px"
       >
-        <el-form-item label="User ID">
-          <el-input v-model="userData.id" disabled />
-        </el-form-item>
         <el-form-item label="Full Name">
           <el-input v-model="userData.name" :disabled="!isEditing" />
         </el-form-item>

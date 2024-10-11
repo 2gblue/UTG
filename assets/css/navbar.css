@@ -38,3 +38,8 @@ a {
   cursor: auto;
   text-decoration: none;
 }
+
+.logo {
+  height: 100%;
+  margin-left: 10px;
+}
