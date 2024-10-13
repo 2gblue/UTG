@@ -40,3 +40,13 @@ body {
 .el-main {
   max-width: 30vw;
 }
+
+@media (max-width: 768px) {
+  .aside-hidden {
+    display: none;
+  }
+
+  .el-main {
+    max-width: 80vw;
+  }
+}
