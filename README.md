@@ -1,75 +1,25 @@
-# Nuxt 3 Minimal Starter
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+# UMPSA TTG (Timetable Generator)
 
-## Setup
+**Final Year Project** (FYP) that is made during my final year of study in *Universiti Malaysia Pahang Al-Sultan Abdullah* (UMPSA) in 2024. The project aims to automate timetable generation process during study/semester planning, usage in accordance with the **Open Registration** of the university. The project aims to complement the ever-changing selections of desired subjects due to the hectic nature of vacancy between different subjects during the registration period.
 
-Make sure to install the dependencies:
 
+## Deployment
+
+The project is  being deployed at the site below for the foreseeable future.
 ```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
+  https://umpsa-ttg.vercel.app/
 ```
 
-## Development Server
 
-Start the development server on `http://localhost:3000`:
+## Tech Used
+- Made with [Nuxt (Vue.js) Framework](https://nuxt.com/)
+- Database on [Supabase](https://supabase.com/)
+- Deployed on [Vercel](https://vercel.com/)
+- Designed with [Element Plus](https://element-plus.org/en-US/) UI library
 
-```bash
-# npm
-npm run dev
 
-# pnpm
-pnpm run dev
 
-# yarn
-yarn dev
 
-# bun
-bun run dev
-```
 
-## Production
 
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm run build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm run preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
