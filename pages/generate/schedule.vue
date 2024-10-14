@@ -115,7 +115,12 @@ async function retrieveJSON() {
   const queryCourses = route.query.selectedCourses;
   if (queryCourses) {
     try {
-      const courseIds = queryCourses.split(",").map((id) => parseInt(id));
+      const courseIds = queryCourses.split(",").map((id) => parseInt(id, 10));
+      const courseIdMap = courseIds.reduce((map, id, index) => {
+        map[id] = index;
+        return map;
+      }, {});
+
       const { data: courses, error: courseError } = await client
         .from("course")
         .select(
@@ -126,7 +131,12 @@ async function retrieveJSON() {
       if (courseError) {
         console.error("Error fetching courses:", courseError.message);
       } else {
-        for (const course of courses) {
+        // Reorder the courses
+        const orderedCourses = courses.sort(
+          (a, b) => courseIdMap[a.id] - courseIdMap[b.id]
+        );
+
+        for (const course of orderedCourses) {
           const { data: sections, error: sectionError } = await client
             .from("session")
             .select("sectionName")
@@ -139,7 +149,7 @@ async function retrieveJSON() {
             selectedSections.value[course.id] = [];
           }
         }
-        selectedCourses.value = courses;
+        selectedCourses.value = orderedCourses;
       }
     } catch (e) {
       console.error("Error processing selectedCourses:", e);
@@ -193,7 +203,6 @@ async function generateTimetable() {
           row.push(session);
         }
       });
-
       resultArray.push(row);
     } else {
       console.warn(`No sections checked for course ${course.courseCode}`);
@@ -262,7 +271,7 @@ async function generateTimetable() {
         if (tryFitCourse(resultArray, index + 1, timetable)) {
           return true;
         }
-        // Reset if not valid
+        // Reset entire timetable if not valid
         timetable[lectureCellId] = null;
         timetable[labCellId] = null;
       }
@@ -319,57 +328,6 @@ async function generateTimetable() {
       timetableInfoDiv.innerHTML += `<br />${skippedCoursesList}`;
     }
   }
-  console.log(timetable.value);
-}
-
-async function testGen() {
-  //Testing raw inputs
-  const newTimetable = Array(26).fill(null);
-  for (const course of selectedCourses.value) {
-    const checkedSections = selectedSections.value[course.id] || [];
-    const { data: sessions, error } = await client
-      .from("session")
-      .select("id, sectionName, lectureSession, labSession")
-      .eq("course_id", course.id);
-
-    if (error) {
-      console.error(
-        `Error fetching sessions for course ${course.id}:`,
-        error.message
-      );
-      continue;
-    }
-    const sessionMap = new Map(sessions.map((s) => [s.sectionName, s]));
-    checkedSections.forEach((sectionName) => {
-      const session = sessionMap.get(sectionName);
-      if (session) {
-        const lectureCellId = session.lectureSession;
-        const labCellId = session.labSession;
-        if (lectureCellId >= 1 && lectureCellId <= 25) {
-          newTimetable[lectureCellId] = {
-            courseId: course.id,
-            courseCode: course.courseCode,
-            courseName: course.courseName,
-            sessionId: session.id,
-            sectionName: sectionName,
-            sessionType: "Lecture",
-          };
-        }
-
-        if (labCellId >= 1 && labCellId <= 25) {
-          newTimetable[labCellId] = {
-            courseId: course.id,
-            courseCode: course.courseCode,
-            courseName: course.courseName,
-            sessionId: session.id,
-            sectionName: sectionName,
-            sessionType: "Lab",
-          };
-        }
-      }
-    });
-  }
-  timetable.value = newTimetable;
   console.log(timetable.value);
 }
 
