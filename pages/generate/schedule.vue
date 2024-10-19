@@ -49,9 +49,6 @@
     <el-button type="warning" size="large" @click="generateTimetable"
       >Generate</el-button
     >
-    <!-- <el-button type="info" size="large" @click="testGen"
-      >Test Filling</el-button
-    > -->
   </div>
   <div class="container">
     <h2 class="middleTitle">Chosen Courses</h2>
@@ -318,13 +315,22 @@ async function generateTimetable() {
   } else {
     timetable.value = finalTimetable;
     timetableInfoDiv.innerHTML =
-      "Failed to generate a valid timetable.<br /><br />Skipped Courses:";
+      "Failed to generate a valid timetable.<br /><br /><u>Skipped Courses:</u>";
 
     // Append skipped courses to the info div
     if (skippedCourses.length > 0) {
-      skippedCoursesList = skippedCourses
-        .map((courseId) => `Course ID: ${courseId}`)
-        .join("<br />");
+      // Set for removing duplicate error lines
+      const uniqueSkippedCourses = [
+        ...new Set(
+          // Return course name based on stored ID
+          skippedCourses.map((courseId) => {
+            const course = selectedCourses.value.find((c) => c.id === courseId);
+            return course ? course.courseName : `Course ID: ${courseId}`;
+          })
+        ),
+      ];
+      // Join course names and display them
+      skippedCoursesList = uniqueSkippedCourses.join("<br />");
       timetableInfoDiv.innerHTML += `<br />${skippedCoursesList}`;
     }
   }
