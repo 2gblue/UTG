@@ -14,7 +14,6 @@
     </div>
     <div class="container">
       <el-table :data="facultyData" stripe>
-        <el-table-column prop="id" label="Faculty ID" width="200" />
         <el-table-column prop="name" label="Faculty" />
       </el-table>
     </div>

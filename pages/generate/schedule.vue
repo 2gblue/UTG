@@ -55,7 +55,6 @@
     <el-divider></el-divider>
     <div v-if="selectedCourses.length">
       <el-table :data="selectedCourses" stripe>
-        <el-table-column prop="id" label="Course ID" width="100" />
         <el-table-column prop="courseCode" label="Course Code" width="150" />
         <el-table-column prop="courseName" label="Course Name">
           <template #default="scope">
