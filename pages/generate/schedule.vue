@@ -49,6 +49,9 @@
     <el-button type="warning" size="large" @click="generateTimetable"
       >Generate</el-button
     >
+    <el-button type="danger" size="large" @click="clearAllCheckbox"
+      >Clear All</el-button
+    >
   </div>
   <div class="container">
     <h2 class="middleTitle">Chosen Courses</h2>
@@ -347,11 +350,17 @@ function exportToPDF() {
   window.open(url.toString(), "_blank");
 }
 
+function clearAllCheckbox() {
+  Object.keys(selectedSections.value).forEach((courseId) => {
+    selectedSections.value[courseId] = [];
+  });
+}
+
 onMounted(() => {
   retrieveJSON();
 });
 
 definePageMeta({
-  layout: "navbar",
+  layout: "default",
 });
 </script>

@@ -259,6 +259,6 @@ onMounted(() => {
 });
 
 definePageMeta({
-  layout: "navbar",
+  layout: "default",
 });
 </script>

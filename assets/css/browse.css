@@ -38,3 +38,8 @@
   align-items: center;
   margin-top: 20px;
 }
+
+.backButton {
+  text-decoration: none;
+  font-size: xx-small;
+}

@@ -31,7 +31,7 @@
 
     <div class="container">
       <h2 style="margin-left: 30px">
-        <u>Course Details</u>
+        <u>Course Details</u> <a href="/courses/" class="backButton">(Back)</a>
       </h2>
       <el-form
         :model="courseData"
@@ -523,6 +523,6 @@ onMounted(async () => {
 });
 
 definePageMeta({
-  layout: "navbar",
+  layout: "default",
 });
 </script>
