@@ -38,7 +38,9 @@
             <NuxtLink to="/register">Create an Account</NuxtLink></el-footer
           >
         </el-container>
-        <el-aside class="aside-hidden"><h2>UMPSA Timetable Generator</h2></el-aside>
+        <el-aside class="aside-hidden"
+          ><h2>UMPSA Timetable Generator</h2></el-aside
+        >
       </el-container>
     </div>
   </body>
