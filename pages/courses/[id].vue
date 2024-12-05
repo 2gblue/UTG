@@ -114,7 +114,11 @@
         </el-table-column>
         <el-table-column label="Actions">
           <template #default="{ row }">
-            <el-button text @click="openEditDialog(row)">
+            <el-button
+              text
+              @click="openEditDialog(row)"
+              v-if="accessAccountRole != 1"
+            >
               <i class="bx bx-pencil"></i>
             </el-button>
             <el-button text @click="openDeleteDialog(row)">
