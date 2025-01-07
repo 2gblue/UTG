@@ -2,30 +2,32 @@
   <div v-if="courseData">
     <title>{{ courseData.courseCode }} {{ courseData.courseName }}</title>
     <h1 class="middleTitle">Courses / {{ courseData.courseCode }}</h1>
-    <div class="buttonContainer" v-if="accessAccountRole != 1">
-      <el-button
-        type="danger"
-        class="newButton"
-        round
-        @click="deleteCourseDialog = true"
-        >Delete</el-button
-      >
-      <el-button
-        v-if="!isEditingCourse"
-        type="primary"
-        class="newButton"
-        round
-        @click="toggleEditCourse"
-        >Edit</el-button
-      >
-      <el-button
-        v-else-if="isEditingCourse"
-        type="primary"
-        class="newButton"
-        round
-        @click="saveChangesCourse"
-        >Save</el-button
-      >
+    <div class="buttonContainer" v-if="accessAccountRole">
+      <div v-if="accessAccountRole != 1">
+        <el-button
+          type="danger"
+          class="newButton"
+          round
+          @click="deleteCourseDialog = true"
+          >Delete</el-button
+        >
+        <el-button
+          v-if="!isEditingCourse"
+          type="primary"
+          class="newButton"
+          round
+          @click="toggleEditCourse"
+          >Edit</el-button
+        >
+        <el-button
+          v-else-if="isEditingCourse"
+          type="primary"
+          class="newButton"
+          round
+          @click="saveChangesCourse"
+          >Save</el-button
+        >
+      </div>
       <br />
     </div>
 
@@ -83,12 +85,13 @@
     </div>
     <br />
 
-    <div class="buttonContainer" v-if="accessAccountRole != 1">
+    <div class="buttonContainer" v-if="accessAccountRole">
       <el-button
         type="success"
         class="newButton"
         round
         @click="addSectionDialog = true"
+        v-if="accessAccountRole != 1"
         >New</el-button
       >
     </div>
@@ -114,20 +117,22 @@
         </el-table-column>
         <el-table-column label="Actions">
           <template #default="{ row }">
-            <el-button
-              text
-              @click="openEditDialog(row)"
-              v-if="accessAccountRole != 1"
-            >
-              <i class="bx bx-pencil"></i>
-            </el-button>
-            <el-button
-              text
-              @click="openDeleteDialog(row)"
-              v-if="accessAccountRole != 1"
-            >
-              <i class="bx bx-trash"></i>
-            </el-button>
+            <div v-if="accessAccountRole">
+              <el-button
+                text
+                @click="openEditDialog(row)"
+                v-if="accessAccountRole != 1"
+              >
+                <i class="bx bx-pencil"></i>
+              </el-button>
+              <el-button
+                text
+                @click="openDeleteDialog(row)"
+                v-if="accessAccountRole != 1"
+              >
+                <i class="bx bx-trash"></i>
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
