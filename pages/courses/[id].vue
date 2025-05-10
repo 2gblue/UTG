@@ -235,7 +235,7 @@
             <el-option
               v-for="item in group.options"
               :key="item.id"
-              :label="`${item.timeStart} - ${item.timeEnd}`"
+              :label="getFormattedSession(item.id)"
               :value="item.id"
             />
           </el-option-group>
@@ -252,7 +252,7 @@
             <el-option
               v-for="item in group.options"
               :key="item.id"
-              :label="`${item.timeStart} - ${item.timeEnd}`"
+              :label="getFormattedSession(item.id)"
               :value="item.id"
             />
           </el-option-group>
