@@ -87,6 +87,14 @@
 
     <div class="buttonContainer" v-if="accessAccountRole">
       <el-button
+        type="warning"
+        class="newButton"
+        round
+        @click="openMassEditDialog"
+        v-if="accessAccountRole != 1"
+        >Mass Edit</el-button
+      >
+      <el-button
         type="success"
         class="newButton"
         round
@@ -270,6 +278,90 @@
       </span>
     </el-form>
   </el-dialog>
+
+  <el-dialog
+    v-model="addMassSectionEditDialog"
+    title="Mass Edit Sections"
+    width="80%"
+    class="center-dialog"
+  >
+    <div
+      v-for="(section, index) in massEditSections"
+      :key="section.id"
+      class="section-row"
+      style="margin-bottom: 0.5rem"
+    >
+      <el-card>
+        <div style="display: flex; gap: 1rem; align-items: flex-start">
+          <div style="width: 10%; text-align: center; align-self: center">
+            <strong>{{ section.sectionName }}</strong>
+          </div>
+
+          <div style="flex: 1">
+            <el-form label-width="120px">
+              <el-form-item label="Lecture Session">
+                <el-select
+                  style="width: 100%"
+                  v-model="massEditSections[index].lectureSession"
+                  :placeholder="
+                    getFormattedSession(
+                      massEditSections[index].lectureSession
+                    ) || 'Select Lecture Session'
+                  "
+                  filterable
+                >
+                  <el-option-group
+                    v-for="group in groupedPeriods"
+                    :key="group.label"
+                    :label="group.label"
+                  >
+                    <el-option
+                      v-for="item in group.options"
+                      :key="item.id"
+                      :label="getFormattedSession(item.id)"
+                      :value="item.id"
+                    />
+                  </el-option-group>
+                </el-select>
+              </el-form-item>
+
+              <el-form-item label="Lab Session">
+                <el-select
+                  style="width: 100%"
+                  v-model="massEditSections[index].labSession"
+                  :placeholder="
+                    getFormattedSession(massEditSections[index].labSession) ||
+                    'Select Lab Session'
+                  "
+                  filterable
+                >
+                  <el-option-group
+                    v-for="group in groupedPeriods"
+                    :key="group.label"
+                    :label="group.label"
+                  >
+                    <el-option
+                      v-for="item in group.options"
+                      :key="item.id"
+                      :label="getFormattedSession(item.id)"
+                      :value="item.id"
+                    />
+                  </el-option-group>
+                </el-select>
+              </el-form-item>
+            </el-form>
+          </div>
+        </div>
+      </el-card>
+    </div>
+
+    <template #footer>
+      <el-button @click="addMassSectionEditDialog = false">Cancel</el-button>
+      <el-button type="primary" @click="saveAllEditedSections"
+        >Save All Changes</el-button
+      >
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped>
@@ -299,13 +391,16 @@ const courseID = route.params.id;
 const isEditingCourse = ref(false);
 const deleteCourseDialog = ref(false);
 const addSectionDialog = ref(false);
+
 const addSectionForm = reactive({
   sectionName: "",
   lectureSession: null,
   labSession: null,
   course_id: courseID,
 });
+
 const editSectionDialog = ref(false);
+
 const editSectionForm = reactive({
   id: null,
   sectionName: "",
@@ -313,8 +408,11 @@ const editSectionForm = reactive({
   labSession: null,
   course_id: null,
 });
+
 const deleteSectionDialog = ref(false);
 const deleteSectionData = ref(null);
+const addMassSectionEditDialog = ref(false);
+const massEditSections = ref([]);
 
 const toggleEditCourse = () => {
   isEditingCourse.value = !isEditingCourse.value;
@@ -331,6 +429,33 @@ const openEditDialog = (section) => {
 const openDeleteDialog = (section) => {
   deleteSectionData.value = section;
   deleteSectionDialog.value = true;
+};
+
+const openMassEditDialog = () => {
+  massEditSections.value = sessionsData.value.map((session) => ({
+    ...session,
+  }));
+  addMassSectionEditDialog.value = true;
+};
+
+const saveAllEditedSections = async () => {
+  try {
+    const updates = massEditSections.value.map((section) =>
+      client
+        .from("session")
+        .update({
+          lectureSession: section.lectureSession,
+          labSession: section.labSession,
+        })
+        .eq("id", section.id)
+    );
+
+    await Promise.all(updates);
+    addMassSectionEditDialog.value = false;
+    location.reload();
+  } catch (error) {
+    console.error("Failed to save section changes:", error.message);
+  }
 };
 
 const saveChangesCourse = async () => {
