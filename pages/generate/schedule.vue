@@ -12,10 +12,27 @@
         <template #default="scope">
           <div
             :id="`cell-${scope.$index + 1}-${index + 1}`"
-            style="height: auto"
+            :class="{
+              blocked:
+                timetable[scope.$index * times.length + index + 1]?.isBlocked,
+            }"
+            style="
+              height: auto;
+              cursor: pointer;
+              padding: 5px;
+              text-align: center;
+            "
+            @click="toggleBlockedCell(scope.$index, index)"
           >
             <!-- Render content based on timetable array -->
-            <div v-if="timetable[scope.$index * times.length + index + 1]">
+            <div
+              v-if="
+                timetable[scope.$index * times.length + index + 1]?.isBlocked
+              "
+            >
+              <em>Blocked</em>
+            </div>
+            <div v-else-if="timetable[scope.$index * times.length + index + 1]">
               <p>
                 <strong>{{
                   timetable[scope.$index * times.length + index + 1].courseCode
@@ -168,12 +185,36 @@ function handleCheckboxChange(courseId, section) {
   }
 }
 
+function toggleBlockedCell(rowIndex, colIndex) {
+  const cellIndex = rowIndex * times.length + colIndex + 1;
+  const current = timetable.value[cellIndex];
+  if (!current) {
+    timetable.value[cellIndex] = { isBlocked: true };
+  } else if (current.isBlocked) {
+    timetable.value[cellIndex] = null;
+  }
+}
+
+function isAvailable(cellId) {
+  const cell = timetable.value[cellId];
+  return (
+    cell == null || // empty
+    (typeof cell === "object" && !cell.isBlocked && !cell.sessionId) // not blocked, not occupied
+  );
+}
+
 async function generateTimetable() {
   let resultArray = [];
   let skippedCourses = [];
   let validTimetableFound = false;
-  const newTimetable = Array(26).fill(null);
   let skippedCoursesList = "";
+
+  const newTimetable = Array(26).fill(null);
+  timetable.value.forEach((cell, idx) => {
+    if (cell?.isBlocked) {
+      newTimetable[idx] = { isBlocked: true };
+    }
+  });
 
   for (const course of selectedCourses.value) {
     const checkedSections = selectedSections.value[course.id] || [];
@@ -208,81 +249,9 @@ async function generateTimetable() {
     }
   }
 
-  function resetTimetable() {
-    return Array(26).fill(null);
-  }
-
-  function isTimetableValid(timetable) {
-    return timetable.every(
-      (cell) => cell === null || (cell.sessionId && cell.courseCode)
-    );
-  }
-
-  function tryFitCourse(resultArray, index, timetable) {
-    if (index >= resultArray.length) {
-      return isTimetableValid(timetable);
-    }
-
-    const courseSessions = resultArray[index];
-    let sessionAdded = false;
-
-    for (let i = 3; i < courseSessions.length; i++) {
-      const session = courseSessions[i];
-      const lectureCellId = session.lectureSession;
-      const labCellId = session.labSession;
-
-      const canAddLecture =
-        lectureCellId == null ||
-        (lectureCellId >= 1 &&
-          lectureCellId <= 25 &&
-          !timetable[lectureCellId]);
-      const canAddLab =
-        labCellId == null ||
-        (labCellId >= 1 && labCellId <= 25 && !timetable[labCellId]);
-
-      if (canAddLecture && canAddLab) {
-        if (
-          lectureCellId != null &&
-          lectureCellId >= 1 &&
-          lectureCellId <= 25
-        ) {
-          timetable[lectureCellId] = {
-            courseId: courseSessions[0],
-            courseCode: courseSessions[1],
-            courseName: courseSessions[2],
-            sessionId: session.id,
-            sectionName: session.sectionName,
-            sessionType: "Lecture",
-          };
-        }
-        if (labCellId != null && labCellId >= 1 && labCellId <= 25) {
-          timetable[labCellId] = {
-            courseId: courseSessions[0],
-            courseCode: courseSessions[1],
-            courseName: courseSessions[2],
-            sessionId: session.id,
-            sectionName: session.sectionName,
-            sessionType: "Lab",
-          };
-        }
-        sessionAdded = true;
-
-        if (tryFitCourse(resultArray, index + 1, timetable)) {
-          return true;
-        }
-        // Reset entire timetable if not valid
-        timetable[lectureCellId] = null;
-        timetable[labCellId] = null;
-      }
-    }
-    skippedCourses.push(courseSessions[0]);
-    return false;
-  }
-
-  let finalTimetable = resetTimetable();
-
-  if (tryFitCourse(resultArray, 0, finalTimetable)) {
+  if (tryFitCourse(resultArray, 0, newTimetable, skippedCourses)) {
     validTimetableFound = true;
+    timetable.value = newTimetable;
   } else {
     console.warn(
       "No valid timetable configuration found. Attempting to skip problematic courses."
@@ -293,19 +262,27 @@ async function generateTimetable() {
     resultArray = resultArray.filter(
       (_, index) => !skippedCourses.includes(index)
     );
-    finalTimetable = resetTimetable();
-    if (tryFitCourse(resultArray, 0, finalTimetable)) {
+
+    const retryTimetable = Array(26).fill(null);
+    timetable.value.forEach((cell, idx) => {
+      if (cell?.isBlocked) {
+        retryTimetable[idx] = { isBlocked: true };
+      }
+    });
+
+    if (tryFitCourse(resultArray, 0, retryTimetable, skippedCourses)) {
       validTimetableFound = true;
+      timetable.value = retryTimetable;
     } else {
       resultArray = initialResultArray;
       skippedCourses = initialSkippedCourses;
+      timetable.value = retryTimetable;
     }
   }
 
   const timetableInfoDiv = document.getElementById("timetable-info");
 
   if (validTimetableFound) {
-    timetable.value = finalTimetable;
     const totalCreditHours = selectedCourses.value.reduce((total, course) => {
       const courseSessions = resultArray.find((row) => row[0] === course.id);
       if (courseSessions) {
@@ -315,28 +292,85 @@ async function generateTimetable() {
     }, 0);
     timetableInfoDiv.innerHTML = `Total Credit Hours: ${totalCreditHours}`;
   } else {
-    timetable.value = finalTimetable;
     timetableInfoDiv.innerHTML =
       "Failed to generate a valid timetable.<br /><br /><u>Skipped Courses:</u>";
 
-    // Append skipped courses to the info div
     if (skippedCourses.length > 0) {
-      // Set for removing duplicate error lines
       const uniqueSkippedCourses = [
         ...new Set(
-          // Return course name based on stored ID
           skippedCourses.map((courseId) => {
             const course = selectedCourses.value.find((c) => c.id === courseId);
             return course ? course.courseName : `Course ID: ${courseId}`;
           })
         ),
       ];
-      // Join course names and display them
       skippedCoursesList = uniqueSkippedCourses.join("<br />");
       timetableInfoDiv.innerHTML += `<br />${skippedCoursesList}`;
     }
   }
-  console.log(timetable.value);
+}
+
+function tryFitCourse(resultArray, index, timetable, skippedCourses) {
+  if (index >= resultArray.length) {
+    return true;
+  }
+
+  const courseSessions = resultArray[index];
+  let sessionAdded = false;
+
+  for (let i = 3; i < courseSessions.length; i++) {
+    const session = courseSessions[i];
+    const lectureCellId = session.lectureSession;
+    const labCellId = session.labSession;
+
+    // Check if the session times are available
+    const isLectureTimeAvailable =
+      lectureCellId == null ||
+      (lectureCellId >= 1 && lectureCellId <= 25 && !timetable[lectureCellId]);
+
+    const isLabTimeAvailable =
+      labCellId == null ||
+      (labCellId >= 1 && labCellId <= 25 && !timetable[labCellId]);
+
+    if (!isLectureTimeAvailable || !isLabTimeAvailable) {
+      continue;
+    }
+
+    // Add the session if times are available
+    if (lectureCellId != null && lectureCellId >= 1 && lectureCellId <= 25) {
+      timetable[lectureCellId] = {
+        courseId: courseSessions[0],
+        courseCode: courseSessions[1],
+        courseName: courseSessions[2],
+        sessionId: session.id,
+        sectionName: session.sectionName,
+        sessionType: "Lecture",
+      };
+    }
+    if (labCellId != null && labCellId >= 1 && labCellId <= 25) {
+      timetable[labCellId] = {
+        courseId: courseSessions[0],
+        courseCode: courseSessions[1],
+        courseName: courseSessions[2],
+        sessionId: session.id,
+        sectionName: session.sectionName,
+        sessionType: "Lab",
+      };
+    }
+    sessionAdded = true;
+
+    if (tryFitCourse(resultArray, index + 1, timetable, skippedCourses)) {
+      return true;
+    }
+
+    if (lectureCellId != null) timetable[lectureCellId] = null;
+    if (labCellId != null) timetable[labCellId] = null;
+  }
+
+  if (!sessionAdded) {
+    skippedCourses.push(courseSessions[0]);
+  }
+  return false;
 }
 
 function exportToPDF() {
@@ -354,6 +388,11 @@ function clearAllCheckbox() {
   Object.keys(selectedSections.value).forEach((courseId) => {
     selectedSections.value[courseId] = [];
   });
+  timetable.value = Array(26).fill(null);
+  const timetableInfoDiv = document.getElementById("timetable-info");
+  if (timetableInfoDiv) {
+    timetableInfoDiv.innerHTML = "";
+  }
 }
 
 onMounted(() => {
